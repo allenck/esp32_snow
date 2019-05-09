@@ -1,8 +1,7 @@
-[WhyEngineer](https://www.whyengineer.com) ESP32 SNOW
+[AllenCK](https://www.whyengineer.com) ESP32 SNOW
 ====
 
 # HardWare:
-![esp32_snow](https://img.whyengineer.com/esp32_snow.png?imageView2/2/w/400/h/400/q/75|imageslim) 
 
 * CPU:Xtensa Dual-core 32-bit LX6 microprocessor(s),up to 600 DMIPS
 * RAM:4MB(external)+520K(internal)
@@ -34,8 +33,8 @@
 1. git clone https://github.com/espressif/esp-idf.git
 2. git checkout release/v3.0
 3. git submodule init
-4. git submoudle update
-5. git clone https://github.com/whyengineer/esp32_snow.git
+4. git submodule update
+5. git clone https://github.com/allenck/esp32_snow.git
 6. cd esp32_snow/example
 7. chose a demo and compile,if failed you can try rm the build dir and build again.
 
