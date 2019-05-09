@@ -31,7 +31,7 @@
 
 # Build:
 1. git clone https://github.com/espressif/esp-idf.git
-2. git checkout release/v3.0
+2. git checkout release/v3.3
 3. git submodule init
 4. git submodule update
 5. git clone https://github.com/allenck/esp32_snow.git
