@@ -32,7 +32,10 @@
 #include "esp_heap_caps.h"
 #include "hwcrypto/sha.h"
 #include "esp_system.h"
+extern "C" 
+{
 #include "wpa2/utils/base64.h"
+}
 #include <string.h>
 #include <stdlib.h>
 
@@ -118,17 +121,18 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 
 	//will point to payload (send and receive
 	char* p_payload;
-
+        
 	//Frame header pointer
 	WS_frame_header_t* p_frame_hdr;
 
 	//allocate memory for SHA1 input
-	p_SHA1_Inp = heap_caps_malloc(WS_CLIENT_KEY_L + sizeof(WS_sec_conKey),
+	p_SHA1_Inp = (char*)heap_caps_malloc(WS_CLIENT_KEY_L + sizeof(WS_sec_conKey),
 			MALLOC_CAP_8BIT);
 
 	//allocate memory for SHA1 result
-	p_SHA1_result = heap_caps_malloc(SHA1_RES_L, MALLOC_CAP_8BIT);
+	p_SHA1_result = (char*)heap_caps_malloc(SHA1_RES_L, MALLOC_CAP_8BIT);
 
+        
 	//Check if malloc suceeded
 	if ((p_SHA1_Inp != NULL) && (p_SHA1_result != NULL)) {
 
@@ -137,6 +141,11 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 
 			//read buffer
 			netbuf_data(inbuf, (void**) &buf, &i);
+                        ESP_LOGI(TAG,"buf:%s", buf);
+                        if(memcmp("GET / HTTP/1.1", buf, 14) ==0)
+			{
+                    	  
+			}	
 
 			//write static key into SHA1 Input
 			for (i = 0; i < sizeof(WS_sec_conKey); i++)
@@ -157,7 +166,7 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 						(unsigned char*) p_SHA1_result);
 
 				//hex to base64
-				p_buf = (char*) _base64_encode((unsigned char*) p_SHA1_result,
+				p_buf = (char*) base64_encode((unsigned char*) p_SHA1_result,
 						SHA1_RES_L, (size_t*) &i);
 
 				//free SHA1 input
@@ -167,7 +176,7 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 				free(p_SHA1_result);
 
 				//allocate memory for handshake
-				p_payload = heap_caps_malloc(
+				p_payload = (char*)heap_caps_malloc(
 						sizeof(WS_srv_hs) + i - WS_SPRINTF_ARG_L,
 						MALLOC_CAP_8BIT);
 
@@ -213,7 +222,7 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 							if (p_frame_hdr->mask) {
 
 								//allocate memory for decoded message
-								p_payload = heap_caps_malloc(
+								p_payload = (char*)heap_caps_malloc(
 										p_frame_hdr->payload_length + 1,
 										MALLOC_CAP_8BIT);
 
@@ -285,6 +294,7 @@ void ws_server(void *pvParameters) {
 	conn = netconn_new(NETCONN_TCP);
 	netconn_bind(conn, NULL, WS_PORT);
 	netconn_listen(conn);
+        ESP_LOGI(TAG,"ws_server listen on port:%d",WS_PORT);
 
 	//wait for connections
 	while (netconn_accept(conn, &newconn) == ERR_OK)

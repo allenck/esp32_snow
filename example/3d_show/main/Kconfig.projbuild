@@ -1,0 +1,59 @@
+menu "ESP32_snow 3d_show Configuration"
+
+menu "WiFi Settings"
+
+choice WIFI_MODE
+    bool "Select STA or AP mode"
+    default WIFI_MODE_AP
+    help
+        Select whether STA or AP
+
+config WIFI_MODE_AP
+    bool "WiFi AP"
+config WIFI_MODE_STA
+    bool "WiFi STA"
+endchoice
+
+config ESP_WIFI_SSID
+    depends on WIFI_MODE_STA
+    string "WiFi STA SSID"
+    default ""
+    help
+    WiFi SSID (network name) to connect to or empty for Off.
+
+config ESP_WIFI_PASSWORD
+    depends on WIFI_MODE_STA
+    string "WiFi STA Password"
+    default ""
+    help
+    WiFi Password if WEP/WPA/WPA2 or empty if Open.
+    
+config ESP_WIFI_AP_SSID
+    depends on WIFI_MODE_AP
+    string "WiFi AP SSID"
+    default "we"
+    help
+	AP SSID (network name) to create or empty for Off.
+
+config ESP_WIFI_AP_PASSWORD
+    depends on WIFI_MODE_AP
+    string "WiFi AP Password"
+    default "123456789"
+    help
+	AP password for WPA2 or empty for Open.
+
+config SERVER_IP
+    depends on WIFI_MODE_AP
+    string "IP address of server"
+    default "192.168.4.1"
+
+config ESP_MAXIMUM_RETRY
+    depends on WIFI_MODE_AP
+    int "Maximum retry"
+    default 5
+    help
+    Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+endmenu
+
+
+endmenu

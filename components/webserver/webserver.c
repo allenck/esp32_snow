@@ -100,15 +100,15 @@ const HttpHandleTypeDef http_handle[]={
 	{"/api/led/",led_ctrl},
 	{"/static/logo.png",load_logo},
 	{"/static/esp32.png",load_esp32},
-  {"/api/readdir/",rest_readdir},
-  {"/api/readwav/",rest_readwav},
+        {"/api/readdir/",rest_readdir},
+        {"/api/readwav/",rest_readwav},
 };
 static void return_file(char* filename){
 	uint32_t r;
 	char* read_buf=malloc(1024);
   	FILE* f = fopen(filename, "r");
   	if(f==NULL){
-  		ESP_LOGE(TAG,"not find the file");
+  		ESP_LOGE(TAG,"file not found: %s", filename);
   		return;
   	}
   	while(1){
@@ -158,6 +158,7 @@ void web_index(http_parser* a,char*url,char* body){
   	return_file("/sdcard/www/index.html");
 }
 void rest_readdir(http_parser* a,char*url,char* body){
+    ESP_LOGI(TAG,"rest_readdir called %s %s", url, body);
     char *request;
     asprintf(&request,RES_HEAD,"application/json");//json
     write(client_fd, request, strlen(request));
@@ -204,6 +205,7 @@ void rest_readdir(http_parser* a,char*url,char* body){
     cJSON_Delete(root);
 }
 void rest_readwav(http_parser* a,char*url,char* body){
+    ESP_LOGI(TAG,"rest_readwav called %s %s", url, body);
     char *request;
     asprintf(&request,RES_HEAD,"audio/x-wav");//json
     write(client_fd, request, strlen(request));
@@ -215,6 +217,7 @@ void rest_readwav(http_parser* a,char*url,char* body){
     cJSON_Delete(root);
 }
 void led_ctrl(http_parser* a,char*url,char* body){
+	ESP_LOGI(TAG,"led_ctrl called %s %s", url, body);
 	char *request;
   	asprintf(&request,RES_HEAD,"application/json");//json
   	write(client_fd, request, strlen(request));
@@ -256,11 +259,23 @@ static int body_done_callback (http_parser* a){
   	for(int i=0;i<sizeof(http_handle)/sizeof(http_handle[0]);i++){
   		if(strcmp(http_handle[i].url,http_url)==0){
   			http_handle[i].handle(a,http_url,http_body);
-  			return 0;
+  			free(http_url);
+			free(http_body);
+			http_url=NULL;
+			http_body=NULL;
+			http_url_length=0;
+			http_body_length=0;
+			return 0;
   		}
   	}
   	not_find();
-  	// char *request;
+        free(http_url);
+	free(http_body);
+	http_url=NULL;
+	http_body=NULL;
+	http_url_length=0;
+	http_body_length=0;
+// char *request;
   	// asprintf(&request,RES_HEAD,HTML);
   	// write(client_fd, request, strlen(request));
    //  free(request);

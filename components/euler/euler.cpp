@@ -1,4 +1,6 @@
+#if !CONFIG_MPU9250
 #include "mpu6050.h"
+#endif
 /* Standard includes. */
 #include "string.h"
 #include "esp_err.h"
@@ -22,6 +24,28 @@
 #include "imuUpdate.h"
 #include "websocket.h"
 
+#if CONFIG_MPU9250
+#include "MPU.hpp"        // main file, provides the class itself
+#include "mpu/math.hpp"   // math helper for dealing with MPU data
+#include "mpu/types.hpp"  // MPU data types and definitions
+#if defined CONFIG_MPU_I2C
+#include "I2Cbus.hpp"
+static I2C_t& i2c                     = i2c0;  // i2c0 or i2c1
+static constexpr gpio_num_t SDA       = GPIO_NUM_19;
+static constexpr gpio_num_t SCL       = GPIO_NUM_18;
+static constexpr uint32_t CLOCK_SPEED = 400000;  // 400 KHz
+#elif defined CONFIG_MPU_SPI
+#include "SPIbus.hpp"
+static SPI_t& spi                     = hspi;  // hspi or vspi
+static constexpr int MOSI             = 22;
+static constexpr int MISO             = 21;
+static constexpr int SCLK             = 23;
+static constexpr int CS               = 16;
+static constexpr uint32_t CLOCK_SPEED = 1000000;  // 1MHz
+#endif
+static MPU_t MPU;
+#endif
+
 #define TAG "euler"
 
 
@@ -39,7 +63,12 @@ static void euler_data_update();
 
 
 static void update_task(void *pvParameters){
+#if CONFIG_MPU9250
+        
+        MPU.initialize();  // this will initialize the chip and set default configurations
+#else
 	MPU6050_Initialize();
+#endif
 	gyro_calib();
 	quaternion_init();
 	while(1){
@@ -48,17 +77,29 @@ static void update_task(void *pvParameters){
 	}
 }
 
-void euler_task( void *pvParameters ){
+extern "C" void euler_task( void *pvParameters ){
 	//memset()
+#if CONFIG_MPU9250
+	MPU.setBus(i2c0);  // set communication bus, for SPI -> pass 'hspi'
+        MPU.setAddr(mpud::MPU_I2CADDRESS_AD0_LOW);  // set address or handle, for SPI -> pass 'mpu_spi_handle'
+	MPU.setInterruptEnabled(mpud::INT_EN_RAWDATA_READY);  // enable INT pin
+	if(MPU.testConnection()!=ESP_OK){
+		ESP_LOGI(TAG,"MPU9250 connect failed");
+	}else{
+		ESP_LOGI(TAG,"mpu9250 connect ok!!!");
+	}
+#else
 	if(MPU6050_TestConnection()!=ESP_OK){
-		ESP_LOGI(TAG,"connect failed");
+		ESP_LOGI(TAG,"MPU6050 connect failed");
 	}else{
 		ESP_LOGI(TAG,"mpu6050 connect ok!!!");
 	}
-	xTaskCreate(&update_task, "euler_update_task", 4096, NULL, 10, NULL);
-  cJSON *root=NULL;
-  char* out=NULL;
-	while(1){
+#endif
+    xTaskCreate(&update_task, "euler_update_task", 4096, NULL, 10, NULL);
+
+    cJSON *root=NULL;
+    char* out=NULL;
+    while(1){
 		//sensor_data_update();
     root=cJSON_CreateObject();
     cJSON_AddNumberToObject(root,"roll",(int)(euler_data.euler[0]*57320));
@@ -154,7 +195,13 @@ static void quaternion_init(){
 }
 static void sensor_data_update(){
 	int16_t buf[6];
-	MPU6050_GetRawAccelGyro(buf);
+#if CONFIG_MPU9250
+        MPU.acceleration(&buf[0], &buf[1], &buf[2]);
+        MPU.rotation(&buf[3], &buf[4], &buf[5]);
+#else
+		MPU6050_GetRawAccelGyro(buf);
+#endif
+
 	euler_data.accel[0]=buf[0]/32768.0*2.0*9.8;  //m2/s
 	euler_data.accel[1]=buf[1]/32768.0*2.0*9.8;
 	euler_data.accel[2]=buf[2]/32768.0*2.0*9.8;
@@ -166,7 +213,12 @@ static void gyro_calib(){
 	int gyro_tmp[3]={0};
 	int16_t tmp[6];
 	for(int i=0;i<30;i++){
+#if CONFIG_MPU9250
+        MPU.acceleration(&tmp[0], &tmp[1], &tmp[2]);
+        MPU.rotation(&tmp[3], &tmp[4], &tmp[5]);
+#else
 		MPU6050_GetRawAccelGyro(tmp);
+#endif
 		gyro_tmp[0]+=tmp[3];
 		gyro_tmp[1]+=tmp[4];
 		gyro_tmp[2]+=tmp[5];

@@ -1,6 +1,9 @@
 #ifndef EULER_H
 #define EULER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct 
 {
@@ -13,5 +16,7 @@ typedef struct
 void euler_task( void *pvParameters );
 
 
-
+#ifdef __cplusplus
+}
+#endif
 #endif

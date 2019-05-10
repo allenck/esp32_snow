@@ -1,4 +1,4 @@
-/* GPIO Example
+/* web_server Example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
@@ -39,7 +39,7 @@
 #include "euler.h"
 #include "websocket.h"
 #include "esp_heap_caps.h"
-
+#include "sdkconfig.h"
 
 #define TAG "main:"
 // typedef int (*http_data_cb) (http_parser*, const char *at, size_t length);
@@ -57,8 +57,9 @@ void app_main()
     event_engine_init();
     nvs_flash_init();
     tcpip_adapter_init();
+    wifi_init_sta(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
     //wifi_init_sta("Transee21_TP1","02197545");
-    wifi_init_softap("we","1234567890");
+    //wifi_init_softap("we","1234567890");
     /*init gpio*/
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_PIN_INTR_DISABLE;

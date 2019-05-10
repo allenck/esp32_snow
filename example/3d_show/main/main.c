@@ -1,4 +1,4 @@
-/* GPIO Example
+/* 3d_show Example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
@@ -39,7 +39,7 @@
 #include "euler.h"
 #include "websocket.h"
 #include "esp_heap_caps.h"
-
+#include "sdkconfig.h"
 
 #define TAG "main:"
 // typedef int (*http_data_cb) (http_parser*, const char *at, size_t length);
@@ -48,7 +48,7 @@
 
 //char* http_body;
 
-#define GPIO_OUTPUT_IO_0    5
+#define GPIO_OUTPUT_IO_0    22//5
 #define GPIO_OUTPUT_PIN_SEL  ((1<<GPIO_OUTPUT_IO_0))
 
 void app_main()
@@ -57,8 +57,13 @@ void app_main()
     event_engine_init();
     nvs_flash_init();
     tcpip_adapter_init();
-    wifi_init_sta("Transee21_TP1","02197545");
-    //wifi_init_softap("we","1234567890");
+    //wifi_init_sta("Transee21_TP1","02197545");
+#if CONFIG_WIFI_MODE_STA
+    wifi_init_sta(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+#else
+    wifi_init_softap(CONFIG_ESP_WIFI_AP_SSID,CONFIG_ESP_WIFI_AP_SSID);
+#endif
+
     /*init gpio*/
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
@@ -68,8 +73,28 @@ void app_main()
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
-    /*init i2c*/
-    hal_i2c_init(0,19,18);
+//    /*init i2c*/
+//    hal_i2c_init(0,19,18);
+
+/*init sd card*/
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = true,
+        .max_files = 10
+    };
+    sdmmc_card_t* card;
+    err = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
+    if (err != ESP_OK) {
+        if (err == ESP_FAIL) {
+            printf("Failed to mount filesystem. If you want the card to be formatted, set format_if_mount_failed = true.");
+        } else {
+            printf("Failed to initialize the card (%d). Make sure SD card lines have pull-up resistors in place.", err);
+        }
+        return;
+    }
+    sdmmc_card_print_info(stdout, card);
+
 
     //wait got ip address
      xEventGroupWaitBits(station_event_group,STA_GOTIP_BIT,pdTRUE,pdTRUE,portMAX_DELAY);

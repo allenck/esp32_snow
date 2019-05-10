@@ -45,7 +45,7 @@ static float exInt = 0, eyInt = 0, ezInt = 0;        // scaled integral error
 //====================================================================================================
 extern EulerTypeDef euler_data;
 
-void IMUupdate() {
+extern "C" void IMUupdate() {
         float norm;
         float vx, vy, vz;
         float ex, ey, ez;  
@@ -126,7 +126,8 @@ void IMUupdate() {
         euler_data.q[2]=q2;
         euler_data.q[3]=q3;
 }
-float invSqrt(float x) {
+
+extern "C" float invSqrt(float x) {
 	float halfx = 0.5f * x;
 	float y = x;
 	long i = *(long*)&y;

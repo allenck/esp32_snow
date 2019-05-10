@@ -34,6 +34,9 @@
 
 #define WS_MASK_L		0x4		/**< \brief Length of MASK field in WebSocket Header*/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** \brief Websocket frame header type*/
 typedef struct {
@@ -46,7 +49,7 @@ typedef struct {
 
 /** \brief Websocket frame type*/
 typedef struct{
-	struct netconn* 	conenction;
+	struct netconn* 	connection;
 	WS_frame_header_t	frame_header;
 	size_t				payload_length;
 	char*				payload;
@@ -68,5 +71,7 @@ err_t WS_write_data(char* p_data, size_t length);
  */
 void ws_server(void *pvParameters);
 
-
+#ifdef __cplusplus
+}
+#endif
 #endif /* _WEBSOCKET_TASK_H_ */
