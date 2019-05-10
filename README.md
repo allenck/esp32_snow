@@ -7,7 +7,7 @@
 * RAM:4MB(external)+520K(internal)
 * ROM:4MB(external)+448(internal)
 * WM8978:mclk from gpio0,48k 32bit 2channel
-* MPU6050:3-Axi accle and 3-Axi gyro
+* MPU6050:3-Axis accelerator and 3-Axis gyro or MPU9250
 * BQ24075:Li-ion Charge and power path manage
 * Expand all gpio 
 
@@ -36,7 +36,9 @@
 4. git submodule update
 5. git clone https://github.com/allenck/esp32_snow.git
 6. cd esp32_snow/example
-7. chose a demo and compile,if failed you can try rm the build dir and build again.
+7. choose a demo and compile,if failed you can try rm the build dir and build again.
+
+To support the MPU9250 3 axis sensor, https://github.com/natanaeljr/esp32-MPU-driver  must be installed.
 
 # Todo List:
 
