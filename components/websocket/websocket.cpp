@@ -142,10 +142,10 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 			//read buffer
 			netbuf_data(inbuf, (void**) &buf, &i);
                         ESP_LOGI(TAG,"buf:%s", buf);
-                        if(memcmp("GET / HTTP/1.1", buf, 14) ==0)
-			{
-                    	  return_file("/sdcard/www/3d_show.html");
-			}	
+//                       if(memcmp("GET / HTTP/1.1", buf, 14) ==0)
+//			{
+//                    	  return_file("/sdcard/www/3d_show.html");
+//			}	
 
 			//write static key into SHA1 Input
 			for (i = 0; i < sizeof(WS_sec_conKey); i++)
@@ -187,6 +187,7 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 					sprintf(p_payload, WS_srv_hs, i - 1, p_buf);
 
 					//send handshake
+ESP_LOGI(TAG,"handshake:%s", p_payload);
 					netconn_write(conn, p_payload, strlen(p_payload),
 							NETCONN_COPY);
 
@@ -315,6 +316,7 @@ static void return_file(char* filename){
   		ESP_LOGE(TAG,"file not found: %s", filename);
   		return;
   	}
+        ESP_LOGE(TAG,"reading file: %s", filename);
   	while(1){
     	r=fread(read_buf,1,1024,f);
     	if(r>0){
