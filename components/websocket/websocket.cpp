@@ -65,7 +65,7 @@ static struct netconn* WS_conn = NULL;
 const char WS_sec_WS_keys[] = "Sec-WebSocket-Key:";
 const char WS_sec_conKey[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const char WS_srv_hs[] ="HTTP/1.1 101 Switching Protocols \r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: %.*s\r\n\r\n";
-
+static void return_file(char* filename);
 
 err_t WS_write_data(char* p_data, size_t length) {
 
@@ -144,7 +144,7 @@ static void ws_server_netconn_serve(struct netconn *conn) {
                         ESP_LOGI(TAG,"buf:%s", buf);
                         if(memcmp("GET / HTTP/1.1", buf, 14) ==0)
 			{
-                    	  
+                    	  return_file("/sdcard/www/3d_show.html");
 			}	
 
 			//write static key into SHA1 Input
@@ -303,4 +303,32 @@ void ws_server(void *pvParameters) {
 	//close connection
 	netconn_close(conn);
 	netconn_delete(conn);
+}
+
+static char chunk_len[15];
+static int32_t client_fd;
+static void return_file(char* filename){
+	uint32_t r;
+	char* read_buf= (char*)malloc(1024);
+  	FILE* f = fopen(filename, "r");
+  	if(f==NULL){
+  		ESP_LOGE(TAG,"file not found: %s", filename);
+  		return;
+  	}
+  	while(1){
+    	r=fread(read_buf,1,1024,f);
+    	if(r>0){
+    		sprintf(chunk_len,"%x\r\n",r);
+    		//write(client_fd, chunk_len, strlen(chunk_len));
+                WS_write_data(chunk_len, strlen(chunk_len));
+	    	//printf("%s",dst_buf);
+	    	//write(client_fd, read_buf, r);
+		WS_write_data(read_buf, r);
+	    	//write(client_fd, "\r\n", 2);
+		WS_write_data("\r\n", 2);
+    	}else
+    		break;
+    }
+    fclose(f);
+//  	chunk_end(client_fd);
 }

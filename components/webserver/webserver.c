@@ -22,7 +22,7 @@
 #define TAG "webserver:"
 
 
-#define GPIO_OUTPUT_IO_0    16
+#define GPIO_OUTPUT_IO_0    CONFIG_LED_PIN
 #define GPIO_OUTPUT_PIN_SEL  ((1<<GPIO_OUTPUT_IO_0))
 
 
@@ -223,10 +223,10 @@ void led_ctrl(http_parser* a,char*url,char* body){
   	write(client_fd, request, strlen(request));
   	free(request);
   	cJSON *root=NULL;
-    root= cJSON_Parse(http_body);
-    uint8_t led=cJSON_GetObjectItem(root,"led")->valueint;
-    cJSON_Delete(root);
-    gpio_set_level(GPIO_OUTPUT_IO_0,led);
+	root= cJSON_Parse(http_body);
+	uint8_t led=cJSON_GetObjectItem(root,"led")->valueint;
+	cJSON_Delete(root);
+	gpio_set_level(GPIO_OUTPUT_IO_0,!led);
   	root=NULL;
 	root=cJSON_CreateObject();
 	if(root==NULL){
@@ -244,7 +244,7 @@ void led_ctrl(http_parser* a,char*url,char* body){
 	sprintf(chunk_len,"%x\r\n",strlen(out));
 	write(client_fd, chunk_len, strlen(chunk_len));
 	write(client_fd, out, strlen(out));
-  free(out);
+        free(out);
   	write(client_fd,"\r\n",2);
   	chunk_end(client_fd);
 	//send(client,out,strlen(out),MSG_WAITALL);
