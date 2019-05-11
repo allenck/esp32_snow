@@ -38,7 +38,11 @@
 6. cd esp32_snow/example
 7. choose a demo and compile,if failed you can try rm the build dir and build again.
 
-To support the MPU9250 3 axis sensor, https://github.com/natanaeljr/esp32-MPU-driver  must be installed.
+# 3d_show example
+
+* To support the MPU9250 3 axis sensor, https://github.com/natanaeljr/esp32-MPU-driver  must be installed. These modules must be downloaded into the components directory.
+* To try out the example, load the 3d_show.html in your browser. 
+
 
 # Todo List:
 
