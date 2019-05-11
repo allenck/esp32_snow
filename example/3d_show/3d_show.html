@@ -4,10 +4,25 @@
     <meta charset="utf-8">
     <title>ESP32 WebSocket Test</title>
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://requirejs.org/docs/release/2.3.6/r.js"></script>
+    <script>
+    require(['scripts/config'], function() {
+     // Configuration loaded now, safe to do other require calls
+     // that depend on that config.
+     require(['foo'], function(foo) {
+
+     });
+    });
+    </script>
+
     <script type="text/javascript">
     
         var WebSocket_connection;
-
+        const webSocket = require('ws');
+ 
+        const ws = new WebSocket('ws://10.0.1.68:9998/', {
+         perMessageDeflate: false
+        });
         
         if (!"WebSocket" in window){  
             alert("WebSocket NOT supported by your Browser!");
@@ -25,7 +40,7 @@
             $('#WebSocket_State').text("Connecting");
             
             WebSocket_connection.onopen = function(){
-              $('#WebSocket_State').html('<input type="text" id="websocket_message" value="Data to be send"/><a href=\"javascript:WebSocketSend()\">send WebSocket</a>');
+              $('#WebSocket_State').html('<input type="text" id="websocket_message" value="Data to be sent"/><a href=\"javascript:WebSocketSend()\">send WebSocket</a>');
             };
            
             WebSocket_connection.onmessage = function (evt) { 
@@ -97,7 +112,7 @@ function animate(data) {
    </script>
     <div id="WebSocket_State">
         WebSocket Server: 
-        <input type="text" id="websocket_address" value="ws://192.168.31.45:9998"/>
+        <input type="text" id="websocket_address" value="ws://10.0.1.68:9998"/>
         <a href="javascript:connect()">Connect</a>
         </div>
     <br>

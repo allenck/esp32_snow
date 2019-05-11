@@ -93,6 +93,7 @@ void load_logo(http_parser* a,char*url,char* body);
 void load_esp32(http_parser* a,char*url,char* body);
 void rest_readdir(http_parser* a,char*url,char* body);
 void rest_readwav(http_parser* a,char*url,char* body);
+void load_3d_show(http_parser* a,char*url,char* body);
 
 static void not_find();
 const HttpHandleTypeDef http_handle[]={
@@ -100,8 +101,9 @@ const HttpHandleTypeDef http_handle[]={
 	{"/api/led/",led_ctrl},
 	{"/static/logo.png",load_logo},
 	{"/static/esp32.png",load_esp32},
-        {"/api/readdir/",rest_readdir},
-        {"/api/readwav/",rest_readwav},
+  {"/api/readdir/",rest_readdir},
+  {"/api/readwav/",rest_readwav},
+  {"/3d_show.html",load_3d_show},
 };
 static void return_file(char* filename){
 	uint32_t r;
@@ -142,6 +144,13 @@ void load_logo(http_parser* a,char*url,char* body){
   	write(client_fd, request, strlen(request));
   	free(request);
   	return_file("/sdcard/www/static/logo.png");
+}
+void load_3d_show(http_parser* a,char*url,char* body){
+	char *request;
+  	asprintf(&request,RES_HEAD,"text/html");//html
+  	write(client_fd, request, strlen(request));
+  	free(request);
+  	return_file("/sdcard/www/3d_show.html");
 }
 void load_esp32(http_parser* a,char*url,char* body){
 	char *request;

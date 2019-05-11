@@ -141,11 +141,7 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 
 			//read buffer
 			netbuf_data(inbuf, (void**) &buf, &i);
-                        ESP_LOGI(TAG,"buf:%s", buf);
-//                       if(memcmp("GET / HTTP/1.1", buf, 14) ==0)
-//			{
-//                    	  return_file("/sdcard/www/3d_show.html");
-//			}	
+      ESP_LOGI(TAG,"buf:%s", buf);
 
 			//write static key into SHA1 Input
 			for (i = 0; i < sizeof(WS_sec_conKey); i++)
@@ -187,7 +183,7 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 					sprintf(p_payload, WS_srv_hs, i - 1, p_buf);
 
 					//send handshake
-ESP_LOGI(TAG,"handshake:%s", p_payload);
+          ESP_LOGI(TAG,"handshake:%s", p_payload);
 					netconn_write(conn, p_payload, strlen(p_payload),
 							NETCONN_COPY);
 
@@ -269,7 +265,9 @@ ESP_LOGI(TAG,"handshake:%s", p_payload);
 
 					} //while(netconn_recv(conn, &inbuf)==ERR_OK)
 				} //p_payload!=NULL
+else ESP_LOGI(TAG,"payload == NULL");
 			} //check if needle "Sec-WebSocket-Key:" was found
+else ESP_LOGI(TAG,"Sec-WebSocket-Key: not found");
 		} //receive handshake
 	} //p_SHA1_Inp!=NULL&p_SHA1_result!=NULL
 
