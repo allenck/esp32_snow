@@ -65,7 +65,6 @@ static struct netconn* WS_conn = NULL;
 const char WS_sec_WS_keys[] = "Sec-WebSocket-Key:";
 const char WS_sec_conKey[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const char WS_srv_hs[] ="HTTP/1.1 101 Switching Protocols \r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: %.*s\r\n\r\n";
-static void return_file(char* filename);
 
 err_t WS_write_data(char* p_data, size_t length) {
 
@@ -76,7 +75,7 @@ err_t WS_write_data(char* p_data, size_t length) {
 	//currently only frames with a payload length <WS_STD_LEN are supported
 	if (length > WS_STD_LEN)
 		return ERR_VAL;
-
+  ESP_LOGI(TAG,"WS_write_data:%s", p_data);
 	//netconn_write result buffer
 	err_t result;
 
@@ -304,31 +303,4 @@ void ws_server(void *pvParameters) {
 	netconn_delete(conn);
 }
 
-static char chunk_len[15];
-static int32_t client_fd;
-static void return_file(char* filename){
-	uint32_t r;
-	char* read_buf= (char*)malloc(1024);
-  	FILE* f = fopen(filename, "r");
-  	if(f==NULL){
-  		ESP_LOGE(TAG,"file not found: %s", filename);
-  		return;
-  	}
-        ESP_LOGE(TAG,"reading file: %s", filename);
-  	while(1){
-    	r=fread(read_buf,1,1024,f);
-    	if(r>0){
-    		sprintf(chunk_len,"%x\r\n",r);
-    		//write(client_fd, chunk_len, strlen(chunk_len));
-                WS_write_data(chunk_len, strlen(chunk_len));
-	    	//printf("%s",dst_buf);
-	    	//write(client_fd, read_buf, r);
-		WS_write_data(read_buf, r);
-	    	//write(client_fd, "\r\n", 2);
-		WS_write_data("\r\n", 2);
-    	}else
-    		break;
-    }
-    fclose(f);
-//  	chunk_end(client_fd);
-}
+

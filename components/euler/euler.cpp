@@ -107,9 +107,11 @@ extern "C" void euler_task( void *pvParameters ){
     cJSON_AddNumberToObject(root,"yaw",(int)(euler_data.euler[2]*57320));
     out = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
-    WS_write_data(out,strlen(out));
+    err_t rslt = WS_write_data(out,strlen(out));
+    if(rslt != ERR_OK)
+     ESP_LOGI(TAG,"WS_write_data returned %d", rslt);
     free(out);
-		//ESP_LOGI(TAG,"\nroll:%f,pitch:%f,yaw:%f",euler_data.euler[0]*57.32,euler_data.euler[1]*57.32,euler_data.euler[2]*57.32);
+		ESP_LOGI(TAG,"\nroll:%f,pitch:%f,yaw:%f",euler_data.euler[0]*57.32,euler_data.euler[1]*57.32,euler_data.euler[2]*57.32);
 		vTaskDelay(100);
 	}
 	//vTaskSuspend(NULL);
