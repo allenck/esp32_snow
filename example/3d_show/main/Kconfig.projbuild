@@ -55,5 +55,10 @@ config ESP_MAXIMUM_RETRY
     Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
 endmenu
 
-
+config LED_PIN
+    int "Pin controlling LED"
+    range -1 33
+    default 5
+    help
+        Select LED pin or -1 for unmanaged.
 endmenu

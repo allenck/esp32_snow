@@ -48,7 +48,7 @@
 
 //char* http_body;
 
-#define GPIO_OUTPUT_IO_0    22//5
+#define GPIO_OUTPUT_IO_0    CONFIG_LED_PIN //5
 #define GPIO_OUTPUT_PIN_SEL  ((1<<GPIO_OUTPUT_IO_0))
 
 void app_main()
@@ -73,8 +73,8 @@ void app_main()
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
-//    /*init i2c*/
-//    hal_i2c_init(0,19,18);
+    /*init i2c*/
+    hal_i2c_init(0,19,18);
 
 /*init sd card*/
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
