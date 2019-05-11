@@ -48,7 +48,7 @@
 
 //char* http_body;
 
-#define GPIO_OUTPUT_IO_0    22
+#define GPIO_OUTPUT_IO_0    CONFIG_LED_PIN
 #define GPIO_OUTPUT_PIN_SEL  ((1<<GPIO_OUTPUT_IO_0))
 
 void app_main()
@@ -57,9 +57,13 @@ void app_main()
     event_engine_init();
     nvs_flash_init();
     tcpip_adapter_init();
-    wifi_init_sta(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+    if(CONFIG_ESP_WIFI_SSID[0] != 0)
+     wifi_init_sta(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+    else if(CONFIG_ESP_WIFI_AP_SSID[0] != 0)
+     wifi_init_softap(CONFIG_ESP_WIFI_AP_SSID, CONFIG_ESP_WIFI_AP_PASSWORD);
     //wifi_init_sta("Transee21_TP1","02197545");
     //wifi_init_softap("we","1234567890");
+
     /*init gpio*/
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
@@ -69,6 +73,7 @@ void app_main()
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+
     /*init sd card*/
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
