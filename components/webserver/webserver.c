@@ -103,7 +103,7 @@ const HttpHandleTypeDef http_handle[]={
 	{"/static/esp32.png",load_esp32},
   {"/api/readdir/",rest_readdir},
   {"/api/readwav/",rest_readwav},
-  {"/3d_show.html",load_3d_show},
+  {"/3d_show/3d_show.html",load_3d_show},
 };
 static void return_file(char* filename){
 	uint32_t r;

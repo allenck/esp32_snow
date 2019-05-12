@@ -108,11 +108,14 @@ void app_main()
         ESP_LOGI(TAG, "ETHPGW:"IPSTR, IP2STR(&ip.gw));
         ESP_LOGI(TAG, "~~~~~~~~~~~");
     }
+    /*start webserver*/
+    xTaskCreate(webserver_task, "web_server_task", 4096, NULL, +6, NULL);
     /*start websocket server*/
     xTaskCreate(ws_server, "web_socket_task", 4096, NULL, +6, NULL);
     /*start euler task*/
     xTaskCreate(euler_task, "euler_task", 4096*2, NULL, +6, NULL);
- 
+ 	  
+
    /*print the last ram*/
     size_t free8start=heap_caps_get_free_size(MALLOC_CAP_8BIT);
     size_t free32start=heap_caps_get_free_size(MALLOC_CAP_32BIT);
