@@ -264,9 +264,7 @@ static void ws_server_netconn_serve(struct netconn *conn) {
 
 					} //while(netconn_recv(conn, &inbuf)==ERR_OK)
 				} //p_payload!=NULL
-else ESP_LOGI(TAG,"payload == NULL");
 			} //check if needle "Sec-WebSocket-Key:" was found
-else ESP_LOGI(TAG,"Sec-WebSocket-Key: not found");
 		} //receive handshake
 	} //p_SHA1_Inp!=NULL&p_SHA1_result!=NULL
 
@@ -292,7 +290,7 @@ void ws_server(void *pvParameters) {
 	conn = netconn_new(NETCONN_TCP);
 	netconn_bind(conn, NULL, WS_PORT);
 	netconn_listen(conn);
-        ESP_LOGI(TAG,"ws_server listen on port:%d",WS_PORT);
+  ESP_LOGI(TAG,"ws_server listen on port:%d",WS_PORT);
 
 	//wait for connections
 	while (netconn_accept(conn, &newconn) == ERR_OK)

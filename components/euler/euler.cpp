@@ -60,7 +60,7 @@ static void  euler2quat();
 static void quat2euler();
 static void quaternion_init();
 static void euler_data_update();
-
+static bool enable_wake_on_motion(bool);
 
 static void update_task(void *pvParameters){
 #if CONFIG_MPU9250
@@ -73,7 +73,7 @@ static void update_task(void *pvParameters){
 	quaternion_init();
 	while(1){
 		euler_data_update();
-		vTaskDelay(2);//500hz
+		vTaskDelay(1);//500hz
 	}
 }
 
@@ -108,16 +108,14 @@ extern "C" void euler_task( void *pvParameters ){
     out = cJSON_PrintUnformatted(root);
     cJSON_Delete(root);
     err_t rslt = WS_write_data(out,strlen(out));
-    if(rslt != ERR_OK)
-     ESP_LOGI(TAG,"WS_write_data returned %d", rslt);
+    //if(rslt != ERR_OK)
+     //ESP_LOGI(TAG,"WS_write_data returned %d", rslt);
     free(out);
-		ESP_LOGI(TAG,"\nroll:%f,pitch:%f,yaw:%f",euler_data.euler[0]*57.32,euler_data.euler[1]*57.32,euler_data.euler[2]*57.32);
-		vTaskDelay(100);
+		//ESP_LOGI(TAG,"\nroll:%f,pitch:%f,yaw:%f",euler_data.euler[0]*57.32,euler_data.euler[1]*57.32,euler_data.euler[2]*57.32);
+		vTaskDelay(100/portTICK_PERIOD_MS);
 	}
 	//vTaskSuspend(NULL);
 }
-
-
 
 static void euler_data_update(){
 	sensor_data_update();
@@ -239,4 +237,20 @@ float CLMAP(float a,float min,float max)
   else
     a=a;
   return a;
+}
+
+static bool enable_wake_on_motion(bool b)
+{
+ if(b)
+ {
+	MPU.setMotionFeatureEnabled(false);
+  return true;
+ }
+ ESP_ERROR_CHECK(MPU.setLowPowerAccelMode(true));
+ ESP_ERROR_CHECK(MPU.setLowPowerAccelRate(mpud::LP_ACCEL_RATE_0_49HZ));
+ mpud::mot_config_t cfg;
+ cfg.threshold = 2;
+ ESP_ERROR_CHECK(MPU.setMotionDetectConfig(cfg));
+ ESP_ERROR_CHECK(MPU.setMotionFeatureEnabled(true));
+ return true;
 }
