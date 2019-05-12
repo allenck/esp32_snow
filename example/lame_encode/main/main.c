@@ -50,7 +50,7 @@
 
 //char* http_body;
 
-#define GPIO_OUTPUT_IO_0    5
+#define GPIO_OUTPUT_IO_0   CONFIG_LED_PIN //5
 #define GPIO_OUTPUT_PIN_SEL  ((1<<GPIO_OUTPUT_IO_0))
 
 
