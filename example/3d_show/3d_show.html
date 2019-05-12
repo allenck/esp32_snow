@@ -6,7 +6,7 @@
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://requirejs.org/docs/release/2.3.6/r.js"></script>
     <script src="https://cdn.bootcss.com/three.js/r83/three.min.js"></script>
-   <script>
+    <!--script>
     require(['scripts/config'], function() {
      // Configuration loaded now, safe to do other require calls
      // that depend on that config.
@@ -14,12 +14,12 @@
 
      });
     });
-    </script>
+    </script-->
 
     <script type="text/javascript">
     
         var WebSocket_connection;
-        const webSocket = require('ws');
+        var webSocket = require(['ws']);
  
         const ws = new WebSocket('ws://10.0.1.68:9998/', {
          perMessageDeflate: false
