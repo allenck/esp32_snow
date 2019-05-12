@@ -49,12 +49,13 @@
 
 //char* http_body;
 
-#define GPIO_OUTPUT_IO_0    5
+#define GPIO_OUTPUT_IO_0    CONFIG_LED_PIN//5
 #define GPIO_OUTPUT_PIN_SEL  ((1<<GPIO_OUTPUT_IO_0))
 
 void app_main()
 {
     esp_err_t err;
+
     /*init gpio*/
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
@@ -64,6 +65,7 @@ void app_main()
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
     gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+
     /*init codec */
     hal_i2c_init(0,19,18);
     hal_i2s_init(0,48000,16,2);
@@ -82,6 +84,7 @@ void app_main()
     WM8978_EQ3_Set(0,24);
     WM8978_EQ4_Set(0,24);
     WM8978_EQ5_Set(0,24);
+
     /*init sd card*/
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();

@@ -87,6 +87,8 @@ typedef struct
   void(*handle)(http_parser* a,char*url,char* body);
 }HttpHandleTypeDef;
 
+char* web_indexPage = "/sdcard/www/index.html";
+
 void web_index(http_parser* a,char*url,char* body);
 void led_ctrl(http_parser* a,char*url,char* body);
 void load_logo(http_parser* a,char*url,char* body);
@@ -164,7 +166,7 @@ void web_index(http_parser* a,char*url,char* body){
   	asprintf(&request,RES_HEAD,"text/html");//html
   	write(client_fd, request, strlen(request));
   	free(request);
-  	return_file("/sdcard/www/index.html");
+  	return_file(web_indexPage);
 }
 void rest_readdir(http_parser* a,char*url,char* body){
     ESP_LOGI(TAG,"rest_readdir called %s %s", url, body);
@@ -326,7 +328,7 @@ static http_parser_settings settings =
 static struct sockaddr_in server, client;
 
 
-int creat_socket_server(in_port_t in_port, in_addr_t in_addr)
+int create_socket_server(in_port_t in_port, in_addr_t in_addr)
 {
 	int socket_fd, on;
 	//struct timeval timeout = {10,0};
@@ -365,13 +367,16 @@ void webserver_task( void *pvParameters ){
 	ESP_LOGI(TAG,"webserver start");
 	uint32_t request_cnt=0;
 
-	(void) pvParameters;
+	//(void) pvParameters;
+  if(pvParameters != NULL)
+   //sprintf(web_indexPage,"/sdcard/www/%s", "3d_show.html");
+   web_indexPage = pvParameters;
 	http_parser parser;
     http_parser_init(&parser, HTTP_REQUEST);
     parser.data = NULL;
     socklen_t client_size=sizeof(client);
 
-	socket_fd = creat_socket_server(htons(80),htonl(INADDR_ANY));
+	socket_fd = create_socket_server(htons(80),htonl(INADDR_ANY));
 	if( socket_fd >= 0 ){
 		/* Obtain the address of the output buffer.  Note there is no mutual
 		exclusion on this buffer as it is assumed only one command console

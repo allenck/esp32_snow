@@ -1,10 +1,10 @@
-menu "ESP32_SNOW Conifg"
+menu "ESP32_SNOW audio_play Config"
 
 choice MP3_DECODE
-    prompt "mp3 deocde lib chocie"
+    prompt "mp3 decode lib choice"
     default CONFIG_AUDIO_MAD
     help
-        Select the MP3 deocde lib to use.
+        Select the MP3 decode lib to use.
 
 config AUDIO_MAD
     bool "AUDIO MAD"
@@ -18,4 +18,10 @@ config AUDIO_HELIX
 
 endchoice
 
+config LED_PIN
+    int "Pin controlling LED"
+    range -1 33
+    default 5
+    help
+        Select LED pin or -1 for unmanaged.
 endmenu

@@ -108,8 +108,9 @@ void app_main()
         ESP_LOGI(TAG, "ETHPGW:"IPSTR, IP2STR(&ip.gw));
         ESP_LOGI(TAG, "~~~~~~~~~~~");
     }
+    char * initPage = "3d_show.html";
     /*start webserver*/
-    xTaskCreate(webserver_task, "web_server_task", 4096, NULL, +6, NULL);
+    xTaskCreate(webserver_task, "web_server_task", 4096, initPage, +6, NULL);
     /*start websocket server*/
     xTaskCreate(ws_server, "web_socket_task", 4096, NULL, +6, NULL);
     /*start euler task*/

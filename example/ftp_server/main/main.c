@@ -1,4 +1,4 @@
-/* GPIO Example
+/* ftp_server Example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
@@ -51,7 +51,7 @@
 
 //char* http_body;
 
-#define GPIO_OUTPUT_IO_0    5
+#define GPIO_OUTPUT_IO_0    CONFIG_LED_PIN//5
 #define GPIO_OUTPUT_PIN_SEL  ((1<<GPIO_OUTPUT_IO_0))
 
 void app_main()
@@ -61,7 +61,13 @@ void app_main()
     nvs_flash_init();
     tcpip_adapter_init();
     //wifi_init_sta("Transee21_TP1","02197545");
-    wifi_init_softap("we","123456789");
+    //wifi_init_softap("we","123456789");
+    #if CONFIG_WIFI_MODE_STA
+    wifi_init_sta(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+#else
+    wifi_init_softap(CONFIG_ESP_WIFI_AP_SSID,CONFIG_ESP_WIFI_AP_SSID);
+#endif
+
     /*init gpio*/
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
@@ -70,7 +76,8 @@ void app_main()
     io_conf.pull_down_en = 0;
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
-    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+    gpio_set_level(GPIO_OUTPUT_IO_0, 1); // LED off
+
     /*init sd card*/
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
@@ -105,7 +112,7 @@ void app_main()
     size_t free32start=heap_caps_get_free_size(MALLOC_CAP_32BIT);
     ESP_LOGI(TAG,"free mem8bit: %d mem32bit: %d\n",free8start,free32start);
    
-    //gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+    gpio_set_level(GPIO_OUTPUT_IO_0, 0); // LED on
     ftpd_start();
     vTaskSuspend(NULL);
 

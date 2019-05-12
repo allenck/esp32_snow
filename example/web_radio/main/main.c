@@ -60,8 +60,14 @@ void app_main()
     event_engine_init();
     nvs_flash_init();
     tcpip_adapter_init();
-    wifi_init_sta("Transee21_TP1","02197545");
+    //wifi_init_sta("Transee21_TP1","02197545");
     //wifi_init_softap("we","123456789");
+#if CONFIG_WIFI_MODE_STA
+    wifi_init_sta(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
+#else
+    wifi_init_softap(CONFIG_ESP_WIFI_AP_SSID,CONFIG_ESP_WIFI_AP_SSID);
+#endif
+
     /*init gpio*/
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
