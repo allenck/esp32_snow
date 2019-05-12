@@ -1,0 +1,10 @@
+menu "ESP32_snow bt_speaker Configuration"
+
+config LED_PIN
+    int "Pin controlling LED"
+    range -1 33
+    default 5
+    help
+        Select LED pin or -1 for unmanaged.
+
+endmenu
