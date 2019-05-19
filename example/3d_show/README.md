@@ -1,4 +1,4 @@
-# This is the 3d show demo based on MPU6050
+# This is the 3d show demo based on MPU6050 or MPU9250
 
 ## Flow
 
@@ -11,5 +11,9 @@
 * open the 3d_show.html use your browser,entering the esp32 ip address and connect it.
 ![3d_show](https://img.whyengineer.com/3d_show.png) 
 
-# It's a youtube demo vedio
+
+* To support the MPU9250 3 axis sensor, https://github.com/natanaeljr/esp32-MPU-driver  must be installed. These modules must be downloaded into the components directory. ![MPU driver API](https://natanaeljr.github.io/esp32-MPU-driver/html/index.html)
+* To try out the example, load the '3d_show.html' in your browser. ip-address/3d_show/3d_show.html
+
+# It's a youtube demo video
 [![3d_show](https://img.youtube.com/vi/n1iKDgKCfHM/0.jpg)](https://www.youtube.com/watch?v=n1iKDgKCfHM)
