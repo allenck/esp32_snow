@@ -42,6 +42,7 @@
 
 * To support the MPU9250 3 axis sensor, https://github.com/natanaeljr/esp32-MPU-driver  must be installed. These modules must be downloaded into the components directory. ![MPU driver API](https://natanaeljr.github.io/esp32-MPU-driver/html/index.html)
 * To try out the example, load the '3d_show.html' in your browser. ip-address/3d_show/3d_show.html
+* currenly the project must be built using $IDF_PATH=esp-who/esp-idf; https://github.com/espressif/esp-who
 
 
 # Todo List:
