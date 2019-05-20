@@ -9,6 +9,7 @@ PROJECT_NAME := ESP32_SNOW_FTP_SERVER
 a:=$(shell pwd)
 b:=$(dir $(patsubst %/,%,$(dir $(a))))
 EXTRA_COMPONENT_DIRS:=$(b)components
+EXCLUDE_COMPONENTS:= bt_speaker
 	
 export EXTRA_COMPONENT_DIRS
 

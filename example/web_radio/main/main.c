@@ -62,11 +62,10 @@ void app_main()
     tcpip_adapter_init();
     //wifi_init_sta("Transee21_TP1","02197545");
     //wifi_init_softap("we","123456789");
-#if CONFIG_WIFI_MODE_STA
+    if(CONFIG_ESP_WIFI_SSID[0] != 0)
     wifi_init_sta(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD);
-#else
+    else
     wifi_init_softap(CONFIG_ESP_WIFI_AP_SSID,CONFIG_ESP_WIFI_AP_SSID);
-#endif
 
     /*init gpio*/
     gpio_config_t io_conf;
