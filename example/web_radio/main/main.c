@@ -76,6 +76,7 @@ void app_main()
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+
     /*init codec */
     hal_i2c_init(0,19,18);
     hal_i2s_init(0,48000,16,2);

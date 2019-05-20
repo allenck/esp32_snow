@@ -76,7 +76,7 @@ void app_main()
     /*init i2c*/
     hal_i2c_init(0,19,18);
 
-/*init sd card*/
+		/*init sd card*/
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
 

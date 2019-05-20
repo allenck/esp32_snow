@@ -1,4 +1,4 @@
-/* GPIO Example
+/* lame_encode Example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
@@ -36,8 +36,8 @@
 #include "audio.h"
 #include <dirent.h>
 #include "esp_heap_caps.h"
-#include "euler.h"
-#include "websocket.h"
+//#include "euler.h"
+//#include "websocket.h"
 #include "esp_heap_caps.h"
 #include "lame.h"
 #include "aplay.h"
@@ -265,6 +265,7 @@ void app_main()
     // tcpip_adapter_init();
     // //wifi_init_sta("Transee21_TP1","02197545");
     // wifi_init_softap("we","1234567890");
+
     /*init gpio*/
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
@@ -274,9 +275,20 @@ void app_main()
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+
     /*init sd card*/
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    
+		// GPIOs 15, 2, 4, 12, 13 should have external 10k pull-ups.
+    // Internal pull-ups are not sufficient. However, enabling internal pull-ups
+    // does make a difference some boards, so we do that here.
+    gpio_set_pull_mode(15, GPIO_PULLUP_ONLY);   // CMD, needed in 4- and 1- line modes
+    gpio_set_pull_mode(2, GPIO_PULLUP_ONLY);    // D0, needed in 4- and 1-line modes
+    gpio_set_pull_mode(4, GPIO_PULLUP_ONLY);    // D1, needed in 4-line mode only
+    gpio_set_pull_mode(12, GPIO_PULLUP_ONLY);   // D2, needed in 4-line mode only
+		gpio_set_pull_mode(13, GPIO_PULLUP_ONLY); // D3, needed in 4- and 1-line modes
+
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = true,
         .max_files = 10
