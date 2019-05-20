@@ -21,8 +21,8 @@ typedef struct
     int  wSampleLength; //音频数据的大小
  }WAV_HEADER;
 
-void aplay_wav(char* filename);
-void aplay_mp3(char* filename);
+esp_err_t aplay_wav(char* filename);
+esp_err_t aplay_mp3(char* filename);
 
  #endif
 

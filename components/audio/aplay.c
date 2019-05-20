@@ -25,19 +25,19 @@ struct file_bufer {
 	FILE* f;
 };
 
-void aplay_wav(char* filename){
+esp_err_t aplay_wav(char* filename){
 	//"/sdcard/test.wav"
 	WAV_HEADER wav_head;
 	FILE *f= fopen(filename, "r");
 	if (f == NULL) {
 			ESP_LOGE(TAG,"Failed to open file:%s",filename);
-			return;
+			return ESP_FAIL;
 	}
 	//fprintf(f, "Hello %s!\n", card->cid.name);
 	int rlen=fread(&wav_head,1,sizeof(wav_head),f);
 	if(rlen!=sizeof(wav_head)){
-			ESP_LOGE(TAG,"read faliled");
-			return;
+			ESP_LOGE(TAG,"read failed");
+			return ESP_FAIL;
 	}
 	int channels = wav_head.wChannels;
 	int frequency = wav_head.nSamplesPersec;
@@ -54,10 +54,11 @@ void aplay_wav(char* filename){
 	fclose(f);
 	free(samples_data);
 	f=NULL;
+  return ESP_OK;
 }
 
 #ifdef CONFIG_AUDIO_HELIX
-void aplay_mp3(char *path)
+esp_err_t aplay_mp3(char *path)
 {
 		ESP_LOGI(TAG,"start to decode ...");
 		HMP3Decoder hMP3Decoder;
@@ -65,7 +66,7 @@ void aplay_mp3(char *path)
 		unsigned char *readBuf=malloc(MAINBUF_SIZE);
 		if(readBuf==NULL){
 			ESP_LOGE(TAG,"readBuf malloc failed");
-			return;
+			return ESP_FAIL;
 		}
 		short *output=malloc(1153*4);
 		if(output==NULL){
@@ -158,6 +159,7 @@ void aplay_mp3(char *path)
 		fclose(mp3File);
  
 		ESP_LOGI(TAG,"end mp3 decode ..");
+ return ESP_OK;
 }
 #endif
 #ifdef CONFIG_AUDIO_MAD

@@ -120,10 +120,13 @@ void app_main()
     ESP_LOGI(TAG,"free mem8bit: %d mem32bit: %d\n",free8start,free32start);
 
     uint8_t cnt=0;
-    while(1){
+    bool bOK = true;
+    while(bOK){
         gpio_set_level(GPIO_OUTPUT_IO_0, cnt%2);
-        aplay_mp3("/sdcard/music.mp3");
-        aplay_wav("/sdcard/music.wav");
+        if(aplay_mp3("/sdcard/kalimba.mp3" != ESP_OK)
+         bok = false;
+        if(aplay_wav("/sdcard/the_force.wav") != ESP_OK)
+         bok = false;
         cnt++;
     }
 }
