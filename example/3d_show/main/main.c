@@ -79,7 +79,17 @@ void app_main()
 /*init sd card*/
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+
+    // GPIOs 15, 2, 4, 12, 13 should have external 10k pull-ups.
+    // Internal pull-ups are not sufficient. However, enabling internal pull-ups
+    // does make a difference some boards, so we do that here.
+    gpio_set_pull_mode(15, GPIO_PULLUP_ONLY);   // CMD, needed in 4- and 1- line modes
+    gpio_set_pull_mode(2, GPIO_PULLUP_ONLY);    // D0, needed in 4- and 1-line modes
+    gpio_set_pull_mode(4, GPIO_PULLUP_ONLY);    // D1, needed in 4-line mode only
+    gpio_set_pull_mode(12, GPIO_PULLUP_ONLY);   // D2, needed in 4-line mode only
+		gpio_set_pull_mode(13, GPIO_PULLUP_ONLY); // D3, needed in 4- and 1-line modes
+
+		esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = true,
         .max_files = 10
     };
