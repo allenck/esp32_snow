@@ -60,6 +60,7 @@ esp_err_t aplay_wav(char* filename){
 #ifdef CONFIG_AUDIO_HELIX
 esp_err_t aplay_mp3(char *path)
 {
+ esp_err_t rtn = ESP_OK;
 		ESP_LOGI(TAG,"start to decode ...");
 		HMP3Decoder hMP3Decoder;
 		MP3FrameInfo mp3FrameInfo;
@@ -72,12 +73,14 @@ esp_err_t aplay_mp3(char *path)
 		if(output==NULL){
 			free(readBuf);
 			ESP_LOGE(TAG,"outBuf malloc failed");
+      return ESP_ERR_NO_MEM;
 		}
 		hMP3Decoder = MP3InitDecoder();
 		if (hMP3Decoder == 0){
 			free(readBuf);
 			free(output);
 			ESP_LOGE(TAG,"memory is not enough..");
+      return ESP_ERR_NO_MEM;
 		}
 
 		int samplerate=0;
@@ -88,6 +91,7 @@ esp_err_t aplay_mp3(char *path)
 			free(readBuf);
 			free(output);
 			ESP_LOGE(TAG,"open file failed");
+      return ESP_ERR_NOT_FOUND;
 		}
 		char tag[10];
 		int tag_len = 0;
@@ -136,6 +140,7 @@ esp_err_t aplay_mp3(char *path)
 					if (errs != 0)
 					{
 							ESP_LOGE(TAG,"MP3Decode failed ,code is %d ",errs);
+              rtn = ESP_FAIL;
 							break;
 					}
 					MP3GetLastFrameInfo(hMP3Decoder, &mp3FrameInfo);   
@@ -159,7 +164,7 @@ esp_err_t aplay_mp3(char *path)
 		fclose(mp3File);
  
 		ESP_LOGI(TAG,"end mp3 decode ..");
- return ESP_OK;
+ return rtn;
 }
 #endif
 #ifdef CONFIG_AUDIO_MAD
@@ -193,14 +198,14 @@ static enum mad_flow error(void *data, struct mad_stream *stream, struct mad_fra
     return MAD_FLOW_CONTINUE;
 }
 
-void aplay_mp3(char*filename){
+esp_err_t aplay_mp3(char*filename){
 	FileBuf fb;
 	int ret;
 	//open file
 	fb.fp=fopen(filename,"rb");
 	if(fb.fp==NULL){
 		ESP_LOGE(TAG,"open file failed");
-		return;
+		return ESP_ERR_NOT_FOUND;
 	}
 	//malloc buf
 	fb.buf=malloc(MAINBUF_SIZE);
@@ -208,7 +213,7 @@ void aplay_mp3(char*filename){
 	if(fb.buf==NULL){
 		fclose(fb.fp);
 		ESP_LOGE(TAG,"read buf malloc failed");
-		return;
+		return ESP_ERR_NO_MEM;
 	}
 	//init mad
 	struct mad_stream *stream;
@@ -219,7 +224,7 @@ void aplay_mp3(char*filename){
 		free(fb.buf);
 		fclose(fb.fp);
 		ESP_LOGE(TAG,"stream malloc failed");
-		return;
+		return ESP_ERR_NO_MEM;
 	}
 	frame = malloc(sizeof(struct mad_frame));
 	if(frame==NULL){
@@ -227,7 +232,7 @@ void aplay_mp3(char*filename){
 		free(fb.buf);
 		fclose(fb.fp);
 		ESP_LOGE(TAG,"frame malloc failed");
-		return;
+		return ESP_ERR_NO_MEM;
 	}
 	synth = malloc(sizeof(struct mad_synth));
 	if(synth==NULL){
@@ -236,7 +241,7 @@ void aplay_mp3(char*filename){
 		free(fb.buf);
 		fclose(fb.fp);
 		ESP_LOGE(TAG,"synth malloc failed");
-		return;
+		return ESP_ERR_NO_MEM;
 	}
 	mad_stream_init(stream);
     mad_frame_init(frame);
@@ -278,6 +283,7 @@ void aplay_mp3(char*filename){
 
 	fclose(fb.fp);
 	free(fb.buf);
+ return ESP_OK;
 }
 void set_dac_sample_rate(int rate)
 {

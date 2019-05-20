@@ -102,6 +102,9 @@ void app_main()
         .format_if_mount_failed = true,
         .max_files = 10
     };
+#if CONFIG_FATFS_LFN_NONE
+		ESP_LOGE(TAG, "Long filenames must be configured!");
+#endif
     sdmmc_card_t* card;
     err = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
     if (err != ESP_OK) {
@@ -123,11 +126,27 @@ void app_main()
     bool bOK = true;
     while(bOK){
         gpio_set_level(GPIO_OUTPUT_IO_0, cnt%2);
-        if(aplay_mp3("/sdcard/kalimba.mp3" != ESP_OK)
-         bok = false;
+        if(aplay_mp3("/sdcard/kalimba.mp3") != ESP_OK)
+         bOK = false;
         if(aplay_wav("/sdcard/the_force.wav") != ESP_OK)
-         bok = false;
+         bOK = false;
         cnt++;
+    }
+    struct dirent *pDirEntry = NULL; 
+    DIR          *pDir      = NULL;
+    pDir=opendir("/sdcard/");
+    if(pDir==NULL){
+        ESP_LOGE(TAG,"Opendir Failed");
+    }
+    else 
+    {
+			do
+      {
+				pDirEntry = readdir(pDir);
+        if(pDirEntry==NULL)
+                break;
+         printf("node:%d\ttype:%d\tfilename:%s\n",pDirEntry->d_ino,pDirEntry->d_type,pDirEntry->d_name);
+      }while(1);
     }
 }
 
