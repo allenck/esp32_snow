@@ -40,7 +40,7 @@
 
 # Examples
 
-* To support the MPU9250 3 axis sensor, https://github.com/natanaeljr/esp32-MPU-driver  must be installed. These modules must be downloaded into the components directory. ![MPU driver API](https://natanaeljr.github.io/esp32-MPU-driver/html/index.html)
+* To support the MPU9250 3 axis sensor, https://github.com/natanaeljr/esp32-MPU-driver  must be installed. These modules must be downloaded into the components directory. ![MPU driver API](https://natanaeljr.github.io/esp32-MPU-driver/html/index.html) This library also requires either the I2Cbus or SPIbus be present in $(home)/esl/libraries.
 * To try out the example, load the '3d_show.html' in your browser. ip-address/3d_show/3d_show.html
 * The 'bt_speaker example will not compile with the current version of esp-idf. This causes the other examples also to fail. Adding EXCLUDE_COMPONENTS:= bt_speaker to the example's Make file allows the to compile ok.
 
