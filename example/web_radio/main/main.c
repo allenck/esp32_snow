@@ -13,7 +13,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "freertos/event_groups.h"
-#include "wm8978.h"
+//#include "wm8978.h"
 #include "esp_vfs_fat.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdmmc_defs.h"
@@ -77,8 +77,35 @@ void app_main()
     gpio_config(&io_conf);
     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
 
+    /*init sd card*/
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    // GPIOs 15, 2, 4, 12, 13 should have external 10k pull-ups.
+    // Internal pull-ups are not sufficient. However, enabling internal pull-ups
+    // does make a difference some boards, so we do that here.
+    gpio_set_pull_mode(15, GPIO_PULLUP_ONLY);   // CMD, needed in 4- and 1- line modes
+    gpio_set_pull_mode(2, GPIO_PULLUP_ONLY);    // D0, needed in 4- and 1-line modes
+    gpio_set_pull_mode(4, GPIO_PULLUP_ONLY);    // D1, needed in 4-line mode only
+    gpio_set_pull_mode(12, GPIO_PULLUP_ONLY);   // D2, needed in 4-line mode only
+    gpio_set_pull_mode(13, GPIO_PULLUP_ONLY); // D3, needed in 4- and 1-line modes
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = true,
+        .max_files = 10
+    };
+    sdmmc_card_t* card;
+    err = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
+    if (err != ESP_OK) {
+        if (err == ESP_FAIL) {
+            printf("Failed to mount filesystem. If you want the card to be formatted, set format_if_mount_failed = true.");
+        } else {
+            printf("Failed to initialize the card (%d). Make sure SD card lines have pull-up resistors in place.", err);
+        }
+        return;
+    }
+    sdmmc_card_print_info(stdout, card);
+
     /*init codec */
-    hal_i2c_init(0,23,5);
+    hal_i2c_init(0,19,18);
     hal_i2s_init(0,48000,16,2);
     WM8978_Init();
     WM8978_ADDA_Cfg(1,1); 
@@ -88,15 +115,13 @@ void app_main()
     WM8978_AUX_Gain(0);
     WM8978_LINEIN_Gain(0);
     WM8978_SPKvol_Set(0);
-    WM8978_HPvol_Set(15,15);
+    WM8978_HPvol_Set(30,30);
     WM8978_EQ_3D_Dir(0);
     WM8978_EQ1_Set(0,24);
     WM8978_EQ2_Set(0,24);
     WM8978_EQ3_Set(0,24);
     WM8978_EQ4_Set(0,24);
     WM8978_EQ5_Set(0,24);
-
-
 
     xEventGroupWaitBits(station_event_group,STA_GOTIP_BIT,pdTRUE,pdTRUE,portMAX_DELAY);
     //print ip address
@@ -114,7 +139,7 @@ void app_main()
     size_t free32start=heap_caps_get_free_size(MALLOC_CAP_32BIT);
     ESP_LOGI(TAG,"free mem8bit: %d mem32bit: %d\n",free8start,free32start);
    
-   
+    xTaskCreate(webserver_task, "web_server_task", 4096, "/sdcard/www/web_radio_index.html", 5, NULL);
     xTaskCreate(web_radio_task, "web_radio_task", 4096, NULL, 5, NULL);
     vTaskSuspend(NULL);
 

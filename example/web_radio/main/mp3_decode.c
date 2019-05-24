@@ -221,7 +221,8 @@ void render_sample_block(short *short_sample_buff, int no_samples)
 		char buf[4];
 		memcpy(buf,&right,2);
 		memcpy(buf+2,&left,2);
-		i2s_write_bytes(0,buf, 4, 1000 / portTICK_RATE_MS);
+                size_t written;
+                i2s_write(0,buf, 4, &written, 1000 / portTICK_RATE_MS);
 	}
 	
     //render_samples((char*) sample_buff_ch0, len, &mad_buffer_fmt);

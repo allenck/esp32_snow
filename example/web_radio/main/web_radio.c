@@ -1,4 +1,4 @@
-
+/* web_radio.c  */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -68,7 +68,7 @@ void web_radio_task(void* pvParameters){
     xTaskCreate(mp3_decode_task, "mp3_decode_task", 8192, NULL, 5, NULL);
     //start a http request
     //http_client_get("http://icecast.omroep.nl/3fm-sb-mp3", &settings,NULL);
-    http_client_get("https://rbb-antennebrandenburg-live.sslcast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3", &settings,NULL);
+    http_client_get("http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3", &settings,NULL);
     ESP_LOGE(TAG,"get completed!");
     vTaskDelete(NULL);
 }

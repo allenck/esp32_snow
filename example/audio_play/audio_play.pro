@@ -124,7 +124,7 @@ INCLUDEPATH += "../../components/fifo/include"
 
 SOURCES += main/main.c \
     ../../components/http/http.c
-SOURCES += main/web_radio.c
+SOURCES += main/audio_play.c
 
 
 #INCLUDEPATH += "main/components/dht/"
