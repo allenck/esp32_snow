@@ -77,6 +77,10 @@ void app_main()
     gpio_config(&io_conf);
     gpio_set_level(GPIO_OUTPUT_IO_0, 0);
 
+#ifdef CONFIG_FATFS_LFN_NONE
+        ESP_LOGE(TAG, "Long file names must be configured");
+#endif
+
     /*init sd card*/
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
@@ -122,6 +126,7 @@ void app_main()
     WM8978_EQ3_Set(0,24);
     WM8978_EQ4_Set(0,24);
     WM8978_EQ5_Set(0,24);
+
 
     xEventGroupWaitBits(station_event_group,STA_GOTIP_BIT,pdTRUE,pdTRUE,portMAX_DELAY);
     //print ip address

@@ -18,6 +18,7 @@
 #include "webserver.h"
 #include "cJSON.h"
 #include <dirent.h>
+#include "wm8978.h"
 
 #define TAG "webserver:"
 
@@ -96,6 +97,7 @@ void load_esp32(http_parser* a,char*url,char* body);
 void rest_readdir(http_parser* a,char*url,char* body);
 void rest_readwav(http_parser* a,char*url,char* body);
 void load_3d_show(http_parser* a,char*url,char* body);
+void process_cmd(http_parser* a,char*url,char* body);
 
 static void not_find();
 const HttpHandleTypeDef http_handle[]={
@@ -103,9 +105,10 @@ const HttpHandleTypeDef http_handle[]={
 	{"/api/led/",led_ctrl},
 	{"/static/logo.png",load_logo},
 	{"/static/esp32.png",load_esp32},
-  {"/api/readdir/",rest_readdir},
-  {"/api/readwav/",rest_readwav},
-  {"/3d_show.html",load_3d_show},
+    {"/api/readdir/",rest_readdir},
+    {"/api/readwav/",rest_readwav},
+    {"/3d_show.html",load_3d_show},
+    {"/api/command/", process_cmd},
 };
 static void return_file(char* filename){
 	uint32_t r;
@@ -153,6 +156,65 @@ void load_3d_show(http_parser* a,char*url,char* body){
   	write(client_fd, request, strlen(request));
   	free(request);
   	return_file("/sdcard/www/3d_show.html");
+}
+void process_cmd(http_parser* a,char*url,char* body)
+{
+ uint16_t voll = WM8978_Read_Reg(52);
+ uint16_t volr = WM8978_Read_Reg(53);
+
+ ESP_LOGI(TAG,"volume_ctrl called %s %s", url, body);
+ char *request;
+ asprintf(&request,RES_HEAD,"application/json");//json
+ write(client_fd, request, strlen(request));
+ free(request);
+ cJSON *root=NULL;
+ root= cJSON_Parse(http_body);
+ uint16_t cmd=cJSON_GetObjectItem(root,"cmd")->valueint;
+ cJSON_Delete(root);
+ switch(cmd)
+ {
+ case 1024: // volume up
+     WM8978_HPvol_Set(voll + 10, volr+10);
+     break;
+ case 2048: // volume down
+     WM8978_HPvol_Set(voll - 10, volr-10);
+     break;
+ case 512:
+     // volume off
+     WM8978_HPvol_Set(0, 0);
+     break;
+ default:
+     ESP_LOGE(TAG, "unrecognized command %d", cmd);
+ }
+ root=NULL;
+ root=cJSON_CreateObject();
+ if(root==NULL){
+     ESP_LOGI(TAG,"cjson root create failed\n");
+     return NULL;
+ }
+ cJSON_AddNumberToObject(root,"err",0);
+ // cJSON_AddStringToObject(root,"cuid","esp32_whyengineer");
+ // cJSON_AddStringToObject(root,"token",access_token);
+ // cJSON_AddNumberToObject(root, "rate", 8000);
+ // cJSON_AddNumberToObject(root, "channel", 1);
+ // cJSON_AddNumberToObject(root, "len", len);
+ // cJSON_AddStringToObject(root,"speech",speech);
+ voll = WM8978_Read_Reg(52);
+ volr = WM8978_Read_Reg(53);
+ cJSON_AddNumberToObject(root, "voll",voll );
+ cJSON_AddNumberToObject(root, "volr",volr );
+
+ char* out = cJSON_PrintUnformatted(root);
+ sprintf(chunk_len,"%x\r\n",strlen(out));
+ write(client_fd, chunk_len, strlen(chunk_len));
+ write(client_fd, out, strlen(out));
+     free(out);
+ write(client_fd,"\r\n",2);
+ chunk_end(client_fd);
+ //send(client,out,strlen(out),MSG_WAITALL);
+ //printf("handle_return: %s\n", out);
+ cJSON_Delete(root);
+
 }
 void load_esp32(http_parser* a,char*url,char* body){
 	char *request;
