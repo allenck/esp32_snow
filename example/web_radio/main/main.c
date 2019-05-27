@@ -1,4 +1,4 @@
-/* GPIO Example
+﻿/* GPIO Example
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
@@ -53,6 +53,8 @@
 
 #define GPIO_OUTPUT_IO_0    22//5
 #define GPIO_OUTPUT_PIN_SEL  ((1<<GPIO_OUTPUT_IO_0))
+
+static EventGroupHandle_t eventGroup;
 
 void app_main()
 {
@@ -143,9 +145,17 @@ void app_main()
     size_t free8start=heap_caps_get_free_size(MALLOC_CAP_8BIT);
     size_t free32start=heap_caps_get_free_size(MALLOC_CAP_32BIT);
     ESP_LOGI(TAG,"free mem8bit: %d mem32bit: %d\n",free8start,free32start);
-   
-    xTaskCreate(webserver_task, "web_server_task", 4096, "/sdcard/www/web_radio_index.html", 5, NULL);
-    xTaskCreate(web_radio_task, "web_radio_task", 4096, NULL, 5, NULL);
+
+    struct webserver_params wsp;
+    wsp.html = "/sdcard/www/web_radio.html";
+    wsp.settings = NULL;
+    wsp.station = "http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3";
+    eventGroup = xEventGroupCreate();
+    wsp.eventGroup = eventGroup;
+    xEventGroupClearBits(wsp.eventGroup, 0xff);
+
+    xTaskCreate(webserver_task, "web_server_task", 4096, &wsp, 5, NULL);
+    xTaskCreate(web_radio_task, "web_radio_task", 4096, &wsp, 5, &wsp.webRadioTaskHandle);
     vTaskSuspend(NULL);
 
     //never goto here

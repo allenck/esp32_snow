@@ -19,6 +19,8 @@
 #include "cJSON.h"
 #include <dirent.h>
 #include "wm8978.h"
+#include "web_radio.h"
+#include "stream.h"
 
 #define TAG "webserver:"
 
@@ -98,8 +100,12 @@ void rest_readdir(http_parser* a,char*url,char* body);
 void rest_readwav(http_parser* a,char*url,char* body);
 void load_3d_show(http_parser* a,char*url,char* body);
 void process_cmd(http_parser* a,char*url,char* body);
+void process_station(http_parser* a,char*url,char* body);
+
 
 static void not_find();
+static struct webserver_params* params = NULL;
+
 const HttpHandleTypeDef http_handle[]={
 	{"/",web_index},
 	{"/api/led/",led_ctrl},
@@ -109,6 +115,7 @@ const HttpHandleTypeDef http_handle[]={
     {"/api/readwav/",rest_readwav},
     {"/3d_show.html",load_3d_show},
     {"/api/command/", process_cmd},
+    {"/api/setStation/", process_station},
 };
 static void return_file(char* filename){
 	uint32_t r;
@@ -216,6 +223,46 @@ void process_cmd(http_parser* a,char*url,char* body)
  cJSON_Delete(root);
 
 }
+void process_station(http_parser* a,char*url,char* body)
+{
+    ESP_LOGI(TAG,"set station called %s %s", url, body);
+    char *request;
+    asprintf(&request,RES_HEAD,"application/json");//json
+    write(client_fd, request, strlen(request));
+    free(request);
+    cJSON *root=NULL;
+    root= cJSON_Parse(http_body);
+
+    char *station=cJSON_GetObjectItem(root,"station")->valuestring;
+    ESP_LOGI(TAG, "received request: %s", station);
+   // http_client_get(station, params->settings, NULL);
+
+    EventBits_t bits;
+    bits = xEventGroupGetBits(params->eventGroup);
+    xEventGroupClearBits( params->eventGroup, BIT0);
+
+    if(params->decodeTaskHandle == NULL)
+        ESP_LOGE(TAG, "decodeTaskHandle is NULL!");
+    //vTaskDelete(params->decodeTaskHandle);
+    xEventGroupWaitBits(params->eventGroup,BIT1, true,false, portMAX_DELAY);
+    vTaskDelete(params->webRadioTaskHandle);
+    params->station = (char*)malloc(strlen(station+1));
+    strcpy(params->station, station);
+    xTaskCreate(web_radio_task, "web_radio_task", 4096, params, 5, &params->webRadioTaskHandle);
+    //cJSON_Delete(station);
+
+    char* out = cJSON_PrintUnformatted(root);
+    sprintf(chunk_len,"%x\r\n",strlen(out));
+    write(client_fd, chunk_len, strlen(chunk_len));
+    write(client_fd, out, strlen(out));
+        free(out);
+    write(client_fd,"\r\n",2);
+    chunk_end(client_fd);
+    //send(client,out,strlen(out),MSG_WAITALL);
+    //printf("handle_return: %s\n", out);
+    cJSON_Delete(root);
+}
+
 void load_esp32(http_parser* a,char*url,char* body){
 	char *request;
   	asprintf(&request,RES_HEAD,"image/png");//html
@@ -422,7 +469,6 @@ int create_socket_server(in_port_t in_port, in_addr_t in_addr)
 }
 
 
-
 void webserver_task( void *pvParameters ){
 	int32_t lBytes;
 	esp_err_t err;
@@ -431,8 +477,20 @@ void webserver_task( void *pvParameters ){
 
 	//(void) pvParameters;
   if(pvParameters != NULL)
+  {
    //sprintf(web_indexPage,"/sdcard/www/%s", "3d_show.html");
-   web_indexPage = pvParameters;
+   //web_indexPage = pvParameters;
+   params = (struct webserver_params*)pvParameters;
+   if(params->html == NULL)
+   {
+       ESP_LOGE(TAG, "http is NYLL!");
+       vTaskDelete(NULL);
+       return;
+   }
+   ESP_LOGI(TAG, "web page:%s station:%s", params->html, params->station);
+   params = (struct webserver_params*)pvParameters;
+   web_indexPage = params->html;
+  }
 	http_parser parser;
     http_parser_init(&parser, HTTP_REQUEST);
     parser.data = NULL;

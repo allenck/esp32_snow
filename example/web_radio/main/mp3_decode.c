@@ -20,6 +20,7 @@
 #include "url_parser.h"
 #include "mad.h"
 #include "spiram_fifo.h"
+#include "webserver.h"
 
 #define TAG "MP3_DECODE:"
 
@@ -47,7 +48,7 @@
 #include "spiram_fifo.h"
 #include "mp3_decode.h"
 
-#define TAG "decoder"
+//#define TAG "decoder"
 
 // The theoretical maximum frame size is 2881 bytes,
 // MPEG 2.5 Layer II, 8000 Hz @ 160 kbps, with a padding slot plus 8 byte MAD_BUFFER_GUARD.
@@ -61,7 +62,7 @@ static long bufUnderrunCt;
 
 static enum  mad_flow input(struct mad_stream *stream) {
 	int n, i;
-	int rem, fifoLen;
+    int rem; //, fifoLen;
 	//Shift remaining contents of buf to the front
 	rem=stream->bufend-stream->next_frame;
 	memmove(readBuf, stream->next_frame, rem);
@@ -104,6 +105,12 @@ static enum mad_flow error(void *data, struct mad_stream *stream, struct mad_fra
 void mp3_decode_task(void *pvParameters)
 {
    
+    struct webserver_params* params = NULL;
+    if(pvParameters != NULL)
+    {
+     params = (struct webserver_params*)pvParameters;
+     ESP_LOGI(TAG, "web page:%s station:%s", params->html, params->station);
+    }
     int ret;
     struct mad_stream *stream;
     struct mad_frame *frame;
@@ -120,25 +127,46 @@ void mp3_decode_task(void *pvParameters)
     if (frame==NULL) { printf("MAD: malloc(frame) failed\n"); return; }
     //uint32_t buf_underrun_cnt = 0;
 
+
     printf("MAD: Decoder start.\n");
+    //params->stream = stream;
 
     //Initialize mp3 parts
     mad_stream_init(stream);
     mad_frame_init(frame);
     mad_synth_init(synth);
 
-
+    if(params->eventGroup == NULL)
+        ESP_LOGE(TAG, "event group handle is NULL" );
+    xEventGroupSetBits(params->eventGroup, BIT0);
+    EventBits_t bits;
     while(1) {
 
         // calls mad_stream_buffer internally
         if (input(stream) == MAD_FLOW_STOP ) {
             break;
         }
-
+        bits = xEventGroupGetBits(params->eventGroup);
+        //ESP_LOGI(TAG, "bits = %d", (int)bits);
+        // returns 0 or -1
+        if(bits == 0)
+        {
+         ESP_LOGI(TAG, "request stop!");
+            break;
+        }
         // decode frames until MAD complains
         while(1) {
 
+            //bits = xEventGroupWaitBits(params->eventgroup, BIT0, pdTRUE, pdFALSE, 60000 / portTICK_RATE_MS); // max wait 60s
+            bits = xEventGroupGetBits(params->eventGroup);
             // returns 0 or -1
+            //ESP_LOGI(TAG, "bits = %d", (int)bits);
+            if(bits == 0)
+            {
+             ESP_LOGI(TAG, "request stop!");
+             mad_stream_finish(stream);
+                break;
+            }
             ret = mad_frame_decode(frame, stream);
             if (ret == -1) {
                 if (!MAD_RECOVERABLE(stream->error)) {
@@ -153,23 +181,24 @@ void mp3_decode_task(void *pvParameters)
         // ESP_LOGI(TAG, "RAM left %d", esp_get_free_heap_size());
     }
 
-   // abort:
-   //  // avoid noise
-   //  i2s_zero_dma_buffer(0);
-   //  free(synth);
-   //  free(frame);
-   //  free(stream);
-   //  // clear semaphore for reader task
-   //  spiRamFifoReset();
+//    abort:
+     // avoid noise
+     i2s_zero_dma_buffer(0);
+     free(synth);
+     free(frame);
+     free(stream);
+     // clear semaphore for reader task
+     spiRamFifoReset();
 
-   //  printf("MAD: Decoder stopped.\n");
+     printf("MAD: Decoder stopped.\n");
+     xEventGroupSetBits(params->eventGroup, BIT1);
 
-   //  ESP_LOGI(TAG, "MAD decoder stack: %d\n", uxTaskGetStackHighWaterMark(NULL));
+     ESP_LOGI(TAG, "MAD decoder stack: %d\n", uxTaskGetStackHighWaterMark(NULL));
     vTaskDelete(NULL);
 }
 
 /* Called by the NXP modifications of libmad. Sets the needed output sample rate. */
-static int prevRate;
+//static int prevRate;
 void set_dac_sample_rate(int rate)
 {
 	//printf("Rate %d\n", rate);
@@ -214,7 +243,7 @@ void render_sample_block(short *short_sample_buff, int no_samples)
   //     putchar((sample >> 8) & 0xff);
   //   }
   // }
-	uint32_t len=no_samples*4;
+//	uint32_t len=no_samples*4;
 	for(int i=0;i<no_samples;i++){
 		short right=short_sample_buff[i];
 		short left=short_sample_buff[i];

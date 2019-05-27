@@ -15,6 +15,11 @@
 		</div>
      <p style="font-size: 24px;height: 32px;margin: 20px" id="content">setting</p>
     <div class="row justify-content-md-center" >
+			<form id="station_form">
+			  <input input type="text" id="station" name="station" value="http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3" 
+					placeholder="enter staion URL" /><br>
+					<button type="submit">Set Station</button>
+			</form>
 			<button type="button" class="btn  btn-lg fa fa-volume-up fa-2x" aria-hidden="true" id="volumeup" style="margin: 20px"></button>
       <button type="button" class="btn btn-lg fa fa-volume-down fa-2x" aria-hidden="true" id="volumedown" style="margin: 20px"></button>
       <button type="button" class="btn btn-lg fa fa-volume-off fa-2x" aria-hidden="true" id="volumeoff" style="margin: 20px"></button>
@@ -65,4 +70,27 @@
                     }
                 });
             });
+
+			(function($){
+        function processForm( e ){
+            $.ajax({
+                url: "/api/setStation/",
+                dataType: "json",
+                type: 'POST',
+                contentType: 'application/json',
+    						data: JSON.stringify( { "station": $('#station').val() } ),
+    						processData: false,
+    						success: function( data, textStatus, jQxhr ){
+        				$('#response pre').html( JSON.stringify( data ) );
+							},
+							error: function( jqXhr, textStatus, errorThrown ){
+									console.log( errorThrown );
+							}
+            });
+
+            e.preventDefault();
+        }
+
+        $('#station_form').submit( processForm );
+    })(jQuery)
 </script>

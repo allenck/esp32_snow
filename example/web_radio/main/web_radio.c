@@ -22,6 +22,7 @@
 #include "url_parser.h"
 #include "spiram_fifo.h"
 #include "mp3_decode.h"
+#include "webserver.h"
 
 #define TAG "web radio"
 
@@ -45,6 +46,7 @@ static int begin_callback (http_parser* a){
     return 0;
 }
 static int header_complete_callback(http_parser* a){
+    putchar('\n');
 	ESP_LOGI(TAG,"header completed");
     return 0;
 }
@@ -64,11 +66,23 @@ static http_parser_settings settings =
 
 
 void web_radio_task(void* pvParameters){
+    struct webserver_params* params = NULL;
+    if(pvParameters != NULL)
+    {
+     params = (struct webserver_params*)pvParameters;
+     params->settings = &settings;
+     ESP_LOGI(TAG, "web page:%s station:%s", params->html, params->station);
+    }
     spiRamFifoInit();
-    xTaskCreate(mp3_decode_task, "mp3_decode_task", 8192, NULL, 5, NULL);
+    xTaskCreate(mp3_decode_task, "mp3_decode_task", 8192, pvParameters, 5, &params->decodeTaskHandle);
     //start a http request
     //http_client_get("http://icecast.omroep.nl/3fm-sb-mp3", &settings,NULL);
-    http_client_get("http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3", &settings,NULL);
+    if(params != NULL)
+    {
+        http_client_get(params->station, params->settings, NULL);
+    }
+    else
+        http_client_get("http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3", &settings,NULL);
     ESP_LOGE(TAG,"get completed!");
     vTaskDelete(NULL);
 }
