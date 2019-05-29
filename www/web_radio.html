@@ -18,16 +18,19 @@
 			<img src="./static/esp32.png" class="img-fluid img-thumbnail" alt="...">
 		</div>
      <p style="font-size: 24px;height: 32px;margin: 20px" id="content">setting</p>
-    <div id="response"><h2>http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3</h2></div>
+    <!--div id="response"><h2>http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3</h2></div-->
     <div class="row justify-content-md-center" >
 			<form id="station_form" onsubmit="return valid(this.menu,this.choicetext)">
 			  <!--input input type="text" id="station" name="station" value="http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3" 
-					placeholder="enter station URL" /--><br>
-					<button type="submit">Set Station</button>
-        <input type="text" id="theinput" name="theinput" />
+					placeholder="enter station URL" /><br>
+					<button type="submit">Set Station</button-->
+        <input type="text" id="theinput" name="theinput" placeholder="station URL"/>
 				<select id="station-dropdown" name="menu" onChange="combo(this, 'theinput')" onMouseOut="comboInit(this, 'theinput')" >
 				</select>
+				<button type="submit">Set Station</button>
 			</form>
+ 			</div>
+			<div class="row justify-content-md-center">
 			<button type="button" class="btn  btn-lg fa fa-volume-up fa-2x" aria-hidden="true" id="volumeup" style="margin: 20px"></button>
       <button type="button" class="btn btn-lg fa fa-volume-down fa-2x" aria-hidden="true" id="volumedown" style="margin: 20px"></button>
       <button type="button" class="btn btn-lg fa fa-volume-off fa-2x" aria-hidden="true" id="volumeoff" style="margin: 20px"></button>
