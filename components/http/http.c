@@ -24,6 +24,7 @@
 int http_client_post(char *uri, http_parser_settings *callbacks, void *user_data,char* post_data)
 {
     url_t *url = url_parse(uri);
+    if(url == NULL) {return ESP_FAIL;}
 
     const struct addrinfo hints = {
         .ai_family = AF_INET,
@@ -137,6 +138,7 @@ typedef esp_err_t (*stream_reader_cb)(char *recv_buf, ssize_t bytes_read, void *
 int http_client_get(char *uri, http_parser_settings *callbacks, void *user_data)
 {
     url_t *url = url_parse(uri);
+    if(url == NULL) {return ESP_FAIL;}
 
     const struct addrinfo hints = {
         .ai_family = AF_INET,

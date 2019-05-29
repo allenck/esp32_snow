@@ -101,9 +101,10 @@ void rest_readwav(http_parser* a,char*url,char* body);
 void load_3d_show(http_parser* a,char*url,char* body);
 void process_cmd(http_parser* a,char*url,char* body);
 void process_station(http_parser* a,char*url,char* body);
+void load_json(http_parser* a,char*url,char* body);
+void load_stations(http_parser* a,char*url,char* body);
 
-
-static void not_find();
+static void not_found();
 static struct webserver_params* params = NULL;
 
 const HttpHandleTypeDef http_handle[]={
@@ -116,6 +117,8 @@ const HttpHandleTypeDef http_handle[]={
     {"/3d_show.html",load_3d_show},
     {"/api/command/", process_cmd},
     {"/api/setStation/", process_station},
+    {"/api/read_json/", load_json},
+    {"/stations.json", load_stations},
 };
 static void return_file(char* filename){
 	uint32_t r;
@@ -139,7 +142,8 @@ static void return_file(char* filename){
     fclose(f);
   	chunk_end(client_fd);
 }
-static void not_find(){
+static void not_found(){
+    ESP_LOGE(TAG, "url not found");
 	char *request;
   	asprintf(&request,RES_HEAD,"text/html");//html
   	write(client_fd, request, strlen(request));
@@ -209,9 +213,10 @@ void process_cmd(http_parser* a,char*url,char* body)
  voll = WM8978_Read_Reg(52);
  volr = WM8978_Read_Reg(53);
  cJSON_AddNumberToObject(root, "voll",voll );
- cJSON_AddNumberToObject(root, "volr",volr );
+ cJSON_AddNumberToObject(root, "volr",volr & 0xff );
 
  char* out = cJSON_PrintUnformatted(root);
+ ESP_LOGI(TAG, "out:%s", out);
  sprintf(chunk_len,"%x\r\n",strlen(out));
  write(client_fd, chunk_len, strlen(chunk_len));
  write(client_fd, out, strlen(out));
@@ -239,7 +244,7 @@ void process_station(http_parser* a,char*url,char* body)
 
     EventBits_t bits;
     bits = xEventGroupGetBits(params->eventGroup);
-    xEventGroupClearBits( params->eventGroup, BIT0);
+    xEventGroupClearBits( params->eventGroup, BIT0 | BIT2);
 
     if(params->decodeTaskHandle == NULL)
         ESP_LOGE(TAG, "decodeTaskHandle is NULL!");
@@ -249,9 +254,10 @@ void process_station(http_parser* a,char*url,char* body)
     params->station = (char*)malloc(strlen(station+1));
     strcpy(params->station, station);
     xTaskCreate(web_radio_task, "web_radio_task", 4096, params, 5, &params->webRadioTaskHandle);
-    //cJSON_Delete(station);
+    xEventGroupWaitBits(params->eventGroup,BIT2, true,false, 600/ portTICK_RATE_MS);
 
     char* out = cJSON_PrintUnformatted(root);
+    ESP_LOGI(TAG, "out:%s", out);
     sprintf(chunk_len,"%x\r\n",strlen(out));
     write(client_fd, chunk_len, strlen(chunk_len));
     write(client_fd, out, strlen(out));
@@ -336,6 +342,31 @@ void rest_readwav(http_parser* a,char*url,char* body){
     return_file(name);
     cJSON_Delete(root);
 }
+void load_json(http_parser* a,char*url,char* body)
+{
+    ESP_LOGI(TAG,"load_json called %s %s", url, body);
+    char *request;
+    asprintf(&request,RES_HEAD,"application/json");//json
+    write(client_fd, request, strlen(request));
+    free(request);
+    cJSON *root=NULL;
+    root= cJSON_Parse(http_body);
+    char* name=cJSON_GetObjectItem(root,"filename")->valuestring;
+    char* fn = strcat("/sdcard/www/",name);
+    return_file(fn);
+    cJSON_Delete(root);
+}
+void load_stations(http_parser* a,char*url,char* body)
+{
+    ESP_LOGI(TAG,"load_stations called %s %s", url, body);
+    char *request;
+    asprintf(&request,RES_HEAD,"text/json");//json
+    write(client_fd, request, strlen(request));
+    free(request);
+
+    return_file("/sdcard/www/stations.json");
+    }
+
 void led_ctrl(http_parser* a,char*url,char* body){
 	ESP_LOGI(TAG,"led_ctrl called %s %s", url, body);
 	char *request;
@@ -376,19 +407,21 @@ static int body_done_callback (http_parser* a){
 	http_body=realloc(http_body,http_body_length+1);
     http_body[http_body_length]='\0';
   	ESP_LOGI(TAG,"url=%s,body:%s",http_url,http_body);
-  	for(int i=0;i<sizeof(http_handle)/sizeof(http_handle[0]);i++){
-  		if(strcmp(http_handle[i].url,http_url)==0){
-  			http_handle[i].handle(a,http_url,http_body);
-  			free(http_url);
-			free(http_body);
-			http_url=NULL;
-			http_body=NULL;
-			http_url_length=0;
-			http_body_length=0;
-			return 0;
-  		}
+    for(int i=0;i<sizeof(http_handle)/sizeof(http_handle[0]);i++)
+    {
+        if(strcmp(http_handle[i].url,http_url)==0)
+        {
+            http_handle[i].handle(a,http_url,http_body);
+            free(http_url);
+            free(http_body);
+            http_url=NULL;
+            http_body=NULL;
+            http_url_length=0;
+            http_body_length=0;
+            return 0;
+        }
   	}
-  	not_find();
+    not_found();
         free(http_url);
 	free(http_body);
 	http_url=NULL;

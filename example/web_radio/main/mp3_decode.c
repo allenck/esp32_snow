@@ -140,22 +140,15 @@ void mp3_decode_task(void *pvParameters)
         ESP_LOGE(TAG, "event group handle is NULL" );
     xEventGroupSetBits(params->eventGroup, BIT0);
     EventBits_t bits;
-    while(1) {
+    bool loop = true;
+    while(loop) {
 
         // calls mad_stream_buffer internally
         if (input(stream) == MAD_FLOW_STOP ) {
             break;
         }
-        bits = xEventGroupGetBits(params->eventGroup);
-        //ESP_LOGI(TAG, "bits = %d", (int)bits);
-        // returns 0 or -1
-        if(bits == 0)
-        {
-         ESP_LOGI(TAG, "request stop!");
-            break;
-        }
         // decode frames until MAD complains
-        while(1) {
+        while(loop) {
 
             //bits = xEventGroupWaitBits(params->eventgroup, BIT0, pdTRUE, pdFALSE, 60000 / portTICK_RATE_MS); // max wait 60s
             bits = xEventGroupGetBits(params->eventGroup);
@@ -165,7 +158,8 @@ void mp3_decode_task(void *pvParameters)
             {
              ESP_LOGI(TAG, "request stop!");
              mad_stream_finish(stream);
-                break;
+             loop  = false;
+             break;
             }
             ret = mad_frame_decode(frame, stream);
             if (ret == -1) {

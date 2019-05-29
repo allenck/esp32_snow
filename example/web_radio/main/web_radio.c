@@ -29,6 +29,7 @@
 static int header_value_callback(http_parser* a, const char *at, size_t length){
 	for(int i=0;i<length;i++)
 		putchar(at[i]);
+    printf("\r\n");
 	return 0;
 }
 static int body_callback(http_parser* a, const char *at, size_t length){
@@ -79,10 +80,16 @@ void web_radio_task(void* pvParameters){
     //http_client_get("http://icecast.omroep.nl/3fm-sb-mp3", &settings,NULL);
     if(params != NULL)
     {
-        http_client_get(params->station, params->settings, NULL);
+        esp_err_t rtn;
+        if((rtn =http_client_get(params->station, params->settings, NULL)) != ESP_OK)
+        {
+            ESP_LOGE(TAG, "http_client_get returned %d", rtn);
+            params->err = rtn;
+        }
     }
     else
         http_client_get("http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3", &settings,NULL);
-    ESP_LOGE(TAG,"get completed!");
+    xEventGroupSetBits(params->eventGroup, BIT2); // signal http_client_get done
+    ESP_LOGI(TAG,"get completed!");
     vTaskDelete(NULL);
 }

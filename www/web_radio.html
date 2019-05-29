@@ -1,3 +1,6 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html lang = "en">
 <head>
 	<link href="https://cdn.bootcss.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
@@ -5,6 +8,7 @@
     <script src="https://cdn.bootcss.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"></script>
 	<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 	<title>IOT ENGINEER</title>
+	<meta charset = "UTF-8" />
 </head>
 <body>
 	<div class="container">
@@ -14,62 +18,66 @@
 			<img src="./static/esp32.png" class="img-fluid img-thumbnail" alt="...">
 		</div>
      <p style="font-size: 24px;height: 32px;margin: 20px" id="content">setting</p>
+    <div id="response"><h2>http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3</h2></div>
     <div class="row justify-content-md-center" >
-			<form id="station_form">
-			  <input input type="text" id="station" name="station" value="http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3" 
-					placeholder="enter staion URL" /><br>
+			<form id="station_form" onsubmit="return valid(this.menu,this.choicetext)">
+			  <!--input input type="text" id="station" name="station" value="http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3" 
+					placeholder="enter station URL" /--><br>
 					<button type="submit">Set Station</button>
+        <input type="text" id="theinput" name="theinput" />
+				<select id="station-dropdown" name="menu" onChange="combo(this, 'theinput')" onMouseOut="comboInit(this, 'theinput')" >
+				</select>
 			</form>
 			<button type="button" class="btn  btn-lg fa fa-volume-up fa-2x" aria-hidden="true" id="volumeup" style="margin: 20px"></button>
       <button type="button" class="btn btn-lg fa fa-volume-down fa-2x" aria-hidden="true" id="volumedown" style="margin: 20px"></button>
       <button type="button" class="btn btn-lg fa fa-volume-off fa-2x" aria-hidden="true" id="volumeoff" style="margin: 20px"></button>
     </div> 
- 	</div>
-</body>
+ 	<p id="stations"></p>
+<h1><h2>
+	</div>
+
 <script type="application/javascript">
       $("#volumeoff").click(function(event) {
-                
-                
-                $.ajax({
-                    type: 'POST',
-                   data: "{\"cmd\":512}",
-                     url: "/api/command/",
-                    dataType: "json"
-                }).done(function (data) {
-                   console.log(data.err) ;
-                   if(data.err==0){
-                    console.log("volumeoff start")
-                    }
-                });
-            });
-       $("#volumeup").click(function(event) {
-                
-                
-                $.ajax({
-                    type: 'POST',
-                   data: "{\"cmd\":1024}",
-                     url: "/api/command/",
-                    dataType: "json"
-                }).done(function (data) {
-                   console.log(data.err) ;
-                   if(data.err==0){
-                    console.log("volumeup start")
-                    }
-                });
-            });
+          $.ajax({
+              type: 'POST',
+              data: "{\"cmd\":512}",
+              url: "/api/command/",
+              dataType: "json"
+          }).done(function (data) {
+             console.log(data.err) ;
+             if(data.err==0){
+              console.log("volumeoff left:" + data.voll + " right:" + data.volr );
+              }
+          });
+      });
+
+      $("#volumeup").click(function(event) {
+          $.ajax({
+              type: 'POST',
+              data: "{\"cmd\":1024}",
+              url: "/api/command/",
+              dataType: "json"
+          }).done(function (data) {
+             console.log(data.err) ;
+             if(data.err==0){
+              console.log("volumeup left:" + data.voll + " right:" + data.volr );
+              }
+          });
+      });
+
       $("#volumedown").click(function(event) {         
-                $.ajax({
-                    type: 'POST',
-                   data: "{\"cmd\":2048}",
-                     url: "/api/command/",
-                    dataType: "json"
-                }).done(function (data) {
-                   console.log(data.err) ;
-                   if(data.err==0){
-                    console.log("volumedown start")
-                    }
-                });
-            });
+          $.ajax({
+              type: 'POST',
+             	data: "{\"cmd\":2048}",
+              url: "/api/command/",
+              dataType: "json"
+          }).done(function (data) {
+             console.log(data.err) ;
+             if(data.err==0){
+              console.log("volumedown left:" + data.voll + " right:" + data.volr );
+              }
+          });
+      });
 
 			(function($){
         function processForm( e ){
@@ -78,14 +86,14 @@
                 dataType: "json",
                 type: 'POST',
                 contentType: 'application/json',
-    						data: JSON.stringify( { "station": $('#station').val() } ),
+    						data: JSON.stringify( { "station": $('#theinput').val() } ),
     						processData: false,
     						success: function( data, textStatus, jQxhr ){
-        				$('#response pre').html( JSON.stringify( data ) );
-							},
-							error: function( jqXhr, textStatus, errorThrown ){
+        					$('#response').html( JSON.stringify( data ) );
+								},
+								error: function( jqXhr, textStatus, errorThrown ){
 									console.log( errorThrown );
-							}
+								}
             });
 
             e.preventDefault();
@@ -93,4 +101,58 @@
 
         $('#station_form').submit( processForm );
     })(jQuery)
+
+		let dropdown = $('#station-dropdown');
+
+		dropdown.empty();
+
+		dropdown.append('<option selected="true" disabled>Choose Station</option>');
+		dropdown.prop('selectedIndex', 0);
+
+		const url = '/stations.json';
+
+		// Populate dropdown with list of stations
+		$.getJSON(url, function (data) {
+			$.each(data, function (key, entry) {
+				dropdown.append($('<option></option>').attr('value', entry.uri).text(entry.name));
+			})
+		});
+
+		function comboInit(thelist)
+		{
+			theinput = document.getElementById(theinput);  
+			var idx = thelist.selectedIndex;
+			var content = thelist.options[idx].innerHTML;
+			if(theinput.value == "")
+				theinput.value = content;	
+		}
+
+		function combo(thelist, theinput)
+		{
+			theinput = document.getElementById(theinput);  
+			var idx = thelist.selectedIndex;
+			var content = thelist.options[idx].value;
+			theinput.value = content;	
+   	}
+		
+		function last_choice(selection) {
+			return selection.selectedIndex==selection.length - 1; }
+		function valid(menu,txt) {
+			if(menu.selectedIndex == 0) {
+				alert('You must make a selection from the menu');
+				return false;} 
+			if(txt.value == '') {
+				if(last_choice(menu)) {
+				  alert('You need to type your choice into the text box');
+				  return false; }
+				else {
+				  return true; }}
+			else {
+				if(!last_choice(menu)) {
+				  alert('Incompatible selection');
+				  return false; }
+				else {
+				  return true; }}}
 </script>
+</body>
+</html>

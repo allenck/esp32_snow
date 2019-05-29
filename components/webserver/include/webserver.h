@@ -16,6 +16,8 @@ struct webserver_params
  TaskHandle_t decodeTaskHandle;
  TaskHandle_t webRadioTaskHandle;
  EventGroupHandle_t eventGroup;
+ esp_err_t err;
+ char * errorText;
 };
 
 

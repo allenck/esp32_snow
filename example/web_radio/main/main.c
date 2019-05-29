@@ -152,10 +152,14 @@ void app_main()
     wsp.station = "http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3";
     eventGroup = xEventGroupCreate();
     wsp.eventGroup = eventGroup;
+    wsp.err = ESP_OK;
+    wsp.errorText="No error";
+
     xEventGroupClearBits(wsp.eventGroup, 0xff);
 
     xTaskCreate(webserver_task, "web_server_task", 4096, &wsp, 5, NULL);
     xTaskCreate(web_radio_task, "web_radio_task", 4096, &wsp, 5, &wsp.webRadioTaskHandle);
+    xEventGroupWaitBits(wsp.eventGroup,BIT2, true,false, 600/ portTICK_RATE_MS);
     vTaskSuspend(NULL);
 
     //never goto here
