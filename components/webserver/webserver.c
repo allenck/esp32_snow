@@ -101,8 +101,8 @@ void rest_readwav(http_parser* a,char*url,char* body);
 void load_3d_show(http_parser* a,char*url,char* body);
 void process_cmd(http_parser* a,char*url,char* body);
 void process_station(http_parser* a,char*url,char* body);
-void load_json(http_parser* a,char*url,char* body);
 void load_stations(http_parser* a,char*url,char* body);
+void query_station(http_parser* a,char*url,char* body);
 
 static void not_found();
 static struct webserver_params* params = NULL;
@@ -117,8 +117,8 @@ const HttpHandleTypeDef http_handle[]={
     {"/3d_show.html",load_3d_show},
     {"/api/command/", process_cmd},
     {"/api/setStation/", process_station},
-    {"/api/read_json/", load_json},
     {"/stations.json", load_stations},
+    {"/api/queryStation/", query_station},
 };
 static void return_file(char* filename){
 	uint32_t r;
@@ -268,7 +268,41 @@ void process_station(http_parser* a,char*url,char* body)
     //printf("handle_return: %s\n", out);
     cJSON_Delete(root);
 }
+void query_station(http_parser* a,char*url,char* body)
+{
+    uint16_t voll = WM8978_Read_Reg(52);
+    uint16_t volr = WM8978_Read_Reg(53);
 
+    ESP_LOGI(TAG,"volume_ctrl called %s %s", url, body);
+    char *request;
+    asprintf(&request,RES_HEAD,"application/json");//json
+    write(client_fd, request, strlen(request));
+    free(request);
+    cJSON *root=NULL;
+    root=cJSON_CreateObject();
+    if(root==NULL){
+        ESP_LOGI(TAG,"cjson root create failed\n");
+        return NULL;
+    }
+    cJSON_AddNumberToObject(root,"err",0);
+    voll = WM8978_Read_Reg(52);
+    volr = WM8978_Read_Reg(53);
+    cJSON_AddNumberToObject(root, "voll",voll );
+    cJSON_AddNumberToObject(root, "volr",volr & 0xff );
+    cJSON_AddStringToObject(root, "url", params->station);
+
+    char* out = cJSON_PrintUnformatted(root);
+    ESP_LOGI(TAG, "out:%s", out);
+    sprintf(chunk_len,"%x\r\n",strlen(out));
+    write(client_fd, chunk_len, strlen(chunk_len));
+    write(client_fd, out, strlen(out));
+        free(out);
+    write(client_fd,"\r\n",2);
+    chunk_end(client_fd);
+    //send(client,out,strlen(out),MSG_WAITALL);
+    //printf("handle_return: %s\n", out);
+    cJSON_Delete(root);
+}
 void load_esp32(http_parser* a,char*url,char* body){
 	char *request;
   	asprintf(&request,RES_HEAD,"image/png");//html
@@ -340,20 +374,6 @@ void rest_readwav(http_parser* a,char*url,char* body){
     root= cJSON_Parse(http_body);
     char* name=cJSON_GetObjectItem(root,"filename")->valuestring;
     return_file(name);
-    cJSON_Delete(root);
-}
-void load_json(http_parser* a,char*url,char* body)
-{
-    ESP_LOGI(TAG,"load_json called %s %s", url, body);
-    char *request;
-    asprintf(&request,RES_HEAD,"application/json");//json
-    write(client_fd, request, strlen(request));
-    free(request);
-    cJSON *root=NULL;
-    root= cJSON_Parse(http_body);
-    char* name=cJSON_GetObjectItem(root,"filename")->valuestring;
-    char* fn = strcat("/sdcard/www/",name);
-    return_file(fn);
     cJSON_Delete(root);
 }
 void load_stations(http_parser* a,char*url,char* body)

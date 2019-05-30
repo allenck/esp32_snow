@@ -188,6 +188,7 @@ void app_main()
     wsp.eventGroup = eventGroup;
     wsp.err = ESP_OK;
     wsp.errorText="No error";
+    wsp.host = &host;
 
     xEventGroupClearBits(wsp.eventGroup, 0xff);
 

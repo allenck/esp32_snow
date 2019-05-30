@@ -156,6 +156,30 @@
 				  return false; }
 				else {
 				  return true; }}}
+
+			$.ajax({
+              type: 'POST',
+              data: "{\"cmd\":1024}",
+              url: "/api/queryStation/",
+              dataType: "json"
+          }).done(function (data) {
+             console.log(data.err) ;
+             if(data.err==0){
+              console.log("volume left:" + data.voll + " right:" + data.volr );
+              console.log("station:" + data.url);
+              thelist = document.getElementById('station-dropdown');
+							for(var i=0; i < thelist.options.length; i++) {
+							 console.log(i + ", value:" +thelist.options[i].value + " text: " + thelist.options[i].innerHTML);
+								if(thelist.options[i].value == data.url)
+								{
+									thelist.options[i].selected='selected';
+                  break;
+								}
+							}
+             }
+          });
+    
+    
 </script>
 </body>
 </html>

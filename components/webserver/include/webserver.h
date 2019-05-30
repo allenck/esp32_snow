@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "stream.h"
 #include "freertos/event_groups.h"
+#include "driver/sdmmc_types.h"
 
 void webserver_task( void *pvParameters );
 
@@ -18,6 +19,7 @@ struct webserver_params
  EventGroupHandle_t eventGroup;
  esp_err_t err;
  char * errorText;
+ sdmmc_host_t* host;
 };
 
 
