@@ -21,6 +21,7 @@
 #include "wm8978.h"
 #include "web_radio.h"
 #include "stream.h"
+#include "flash_util.h"
 
 #define TAG "webserver:"
 
@@ -249,12 +250,14 @@ void process_station(http_parser* a,char*url,char* body)
     if(params->decodeTaskHandle == NULL)
         ESP_LOGE(TAG, "decodeTaskHandle is NULL!");
     //vTaskDelete(params->decodeTaskHandle);
-    xEventGroupWaitBits(params->eventGroup,BIT1, true,false, portMAX_DELAY);
+    xEventGroupWaitBits(params->eventGroup,BIT1, true,false, 600/ portTICK_RATE_MS);
     vTaskDelete(params->webRadioTaskHandle);
     params->station = (char*)malloc(strlen(station+1));
     strcpy(params->station, station);
     xTaskCreate(web_radio_task, "web_radio_task", 4096, params, 5, &params->webRadioTaskHandle);
     xEventGroupWaitBits(params->eventGroup,BIT2, true,false, 600/ portTICK_RATE_MS);
+
+   ESP_ERROR_CHECK( write_flash("web_radio", "station", station));
 
     char* out = cJSON_PrintUnformatted(root);
     ESP_LOGI(TAG, "out:%s", out);

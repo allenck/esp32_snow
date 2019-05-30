@@ -39,7 +39,7 @@
 #include "euler.h"
 #include "websocket.h"
 #include "esp_heap_caps.h"
-
+#include "flash_util.h"
 
 #include "web_radio.h"
 
@@ -60,7 +60,8 @@ void app_main()
 {
     esp_err_t err;
     event_engine_init();
-    nvs_flash_init();
+    //ESP_ERROR_CHECK(nvs_flash_init());
+    init_flash();
     tcpip_adapter_init();
     //wifi_init_sta("Transee21_TP1","02197545");
     //wifi_init_softap("we","123456789");
@@ -120,6 +121,9 @@ void app_main()
     slot_config.gpio_mosi = PIN_NUM_MOSI;
     slot_config.gpio_sck  = PIN_NUM_CLK;
     slot_config.gpio_cs   = PIN_NUM_CS;
+    slot_config.gpio_cd   = SDSPI_SLOT_NO_CD;
+
+
     // This initializes the slot without card detect (CD) and write protect (WP) signals.
     // Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.
 #endif //USE_SPI_MODE
@@ -180,10 +184,18 @@ void app_main()
     size_t free32start=heap_caps_get_free_size(MALLOC_CAP_32BIT);
     ESP_LOGI(TAG,"free mem8bit: %d mem32bit: %d\n",free8start,free32start);
 
+    char* stn = NULL;
+    ESP_ERROR_CHECK(read_flash("web_radio", "station", &stn));
+    if(stn == NULL )
+    {
+        // provide a default station
+        stn = "http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3";
+        ESP_ERROR_CHECK(write_flash("web_radio", "station", stn));
+    }
     struct webserver_params wsp;
     wsp.html = "/sdcard/www/web_radio.html";
     wsp.settings = NULL;
-    wsp.station = "http://dg-rbb-http-dus-dtag-cdn.cast.addradio.de/rbb/antennebrandenburg/live/mp3/128/stream.mp3";
+    wsp.station = stn;
     eventGroup = xEventGroupCreate();
     wsp.eventGroup = eventGroup;
     wsp.err = ESP_OK;

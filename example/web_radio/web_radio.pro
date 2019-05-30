@@ -218,5 +218,9 @@ IDF_PATH =/home/allen/esp/esp-who/esp-idf
 			../../components/espressif/wifi.c \
 			../../components/speex/libspeex/window.c \
 			../../components/bsp/wm8978.c \
-			../../components/liblame/library/xmm_quantize_sub.c 
+			../../components/liblame/library/xmm_quantize_sub.c \ 
+    main/flash_util.c
+
+HEADERS += \
+    main/flash_util.h
 
